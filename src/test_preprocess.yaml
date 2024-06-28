@@ -1,0 +1,53 @@
+name: Test preprocess
+implementation:
+  container:
+    image: python:3.7
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas' 'scikit-learn' 'kfp' 'numpy' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+      -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn' 'kfp'
+      'numpy' --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - |
+      def test_preprocess():
+          class TestRunModel(unittest.TestCase):
+              def test_df_shape(self):
+                  file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/malware-detection-0/src/MalwareData.csv'
+                  df = pd.read_csv(file_path, sep='|')
+                  self.assertEqual(df.shape, (138047, 57))
+              def test_value_counts(self):
+                  file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/malware-detection-0/src/MalwareData.csv'
+                  df = pd.read_csv(file_path, sep='|')
+                  self.assertEqual(df['legitimate'].value_counts()[0], 96724)
+                  self.assertEqual(df['legitimate'].value_counts()[1], 41323)
+              def test_normalization(self):
+                  file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/malware-detection-0/src/MalwareData.csv'
+                  df = pd.read_csv(file_path, sep='|')
+                  df = malwarefunctions.preprocess(df)
+                  X = df.drop(columns=['legitimate'])
+                  for label, content in X.describe().items():
+                      if label != "legitimate":
+                          self.assertAlmostEqual(content['mean'], 0)
+                          self.assertAlmostEqual(content['std'], 1)
+              def test_components_drop(self):
+                  file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/malware-detection-0/src/MalwareData.csv'
+                  df = pd.read_csv(file_path, sep='|')
+                  df = malwarefunctions.preprocess(df)
+                  self.assertEqual(df.shape, (138047, 37))
+
+          suite = unittest.TestLoader().loadTestsFromTestCase(TestRunModel)
+          unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)
+
+      import argparse
+      _parser = argparse.ArgumentParser(prog='Test preprocess', description='')
+      _parsed_args = vars(_parser.parse_args())
+
+      _outputs = test_preprocess(**_parsed_args)
+    args: []
