@@ -1,0 +1,201 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: intrusion-detection-unit-testing-pipeline-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.20, pipelines.kubeflow.org/pipeline_compilation_time: '2024-07-01T19:32:38.499503',
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "A pipeline to test the
+      functions and training and testing results from the intrusion detection pipeline
+      componenets", "name": "Intrusion Detection Unit Testing Pipeline"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.20}
+spec:
+  entrypoint: intrusion-detection-unit-testing-pipeline
+  templates:
+  - name: intrusion-detection-unit-testing-pipeline
+    dag:
+      tasks:
+      - {name: test-gbc, template: test-gbc}
+      - {name: test-preprocess, template: test-preprocess}
+  - name: test-gbc
+    container:
+      args: []
+      command:
+      - sh
+      - -c
+      - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+        'pandas' 'scikit-learn' 'kfp' 'numpy' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+        -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn' 'kfp'
+        'numpy' --user) && "$0" "$@"
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def test_gbc():
+            class TestIntrusionDetection(unittest.TestCase):
+                def test_gbc_training(self):
+                    cols = intrusiondetection.column_names()
+                    file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'
+                    df = pd.read_csv(file_path, names=cols)
+                    df = intrusiondetection.preprocess(df)
+                    X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)
+                    model = GradientBoostingClassifier(random_state=42)
+                    model.fit(X_train, y_train)
+                    self.assertIsNotNone(model)
+                    self.assertTrue(hasattr(model, 'feature_importances_'))
+
+                def test_gbc_prediction(self):
+                    cols = intrusiondetection.column_names()
+                    file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'
+                    df = pd.read_csv(file_path, names=cols)
+                    df = intrusiondetection.preprocess(df)
+                    X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)
+                    model = GradientBoostingClassifier(random_state=42)
+                    model.fit(X_train, y_train)
+                    predictions = model.predict(X_test)
+                    self.assertEqual(len(predictions), len(X_test))
+
+                def test_gbc_accuracy(self):
+                    cols = intrusiondetection.column_names()
+                    file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'
+                    df = pd.read_csv(file_path, names=cols)
+                    df = intrusiondetection.preprocess(df)
+                    X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)
+                    model = GradientBoostingClassifier(random_state=42)
+                    model.fit(X_train, y_train)
+                    predictions = model.predict(X_test)
+                    accuracy = accuracy_score(y_test, predictions)
+                    self.assertGreater(accuracy, 0.9)
+                    f1 = f1_score(y_test, predictions)
+                    self.assertGreaterEqual(accuracy, 0.9)
+                    self.assertGreaterEqual(f1, 0.9)
+
+            suite = unittest.TestLoader().loadTestsFromTestCase(TestIntrusionDetection)
+            unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Test gbc', description='')
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = test_gbc(**_parsed_args)
+      image: python:3.7
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.20
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": [], "command": ["sh", "-c", "(PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+          -m pip install --quiet --no-warn-script-location ''pandas'' ''scikit-learn''
+          ''kfp'' ''numpy'' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install
+          --quiet --no-warn-script-location ''pandas'' ''scikit-learn'' ''kfp'' ''numpy''
+          --user) && \"$0\" \"$@\"", "sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def test_gbc():\n    class TestIntrusionDetection(unittest.TestCase):\n        def
+          test_gbc_training(self):\n            cols = intrusiondetection.column_names()\n            file_path
+          = ''https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv''\n            df
+          = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n            X_train,
+          X_test, y_train, y_test = intrusiondetection.traintest_split(df)\n            model
+          = GradientBoostingClassifier(random_state=42)\n            model.fit(X_train,
+          y_train)\n            self.assertIsNotNone(model)\n            self.assertTrue(hasattr(model,
+          ''feature_importances_''))\n\n        def test_gbc_prediction(self):\n            cols
+          = intrusiondetection.column_names()\n            file_path = ''https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv''\n            df
+          = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n            X_train,
+          X_test, y_train, y_test = intrusiondetection.traintest_split(df)\n            model
+          = GradientBoostingClassifier(random_state=42)\n            model.fit(X_train,
+          y_train)\n            predictions = model.predict(X_test)\n            self.assertEqual(len(predictions),
+          len(X_test))\n\n        def test_gbc_accuracy(self):\n            cols =
+          intrusiondetection.column_names()\n            file_path = ''https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv''\n            df
+          = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n            X_train,
+          X_test, y_train, y_test = intrusiondetection.traintest_split(df)\n            model
+          = GradientBoostingClassifier(random_state=42)\n            model.fit(X_train,
+          y_train)\n            predictions = model.predict(X_test)\n            accuracy
+          = accuracy_score(y_test, predictions)\n            self.assertGreater(accuracy,
+          0.9)\n            f1 = f1_score(y_test, predictions)\n            self.assertGreaterEqual(accuracy,
+          0.9)\n            self.assertGreaterEqual(f1, 0.9)\n\n    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntrusionDetection)\n    unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)\n\nimport
+          argparse\n_parser = argparse.ArgumentParser(prog=''Test gbc'', description='''')\n_parsed_args
+          = vars(_parser.parse_args())\n\n_outputs = test_gbc(**_parsed_args)\n"],
+          "image": "python:3.7"}}, "name": "Test gbc"}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "e70bba1fb3954b38fe7b961e20e74f98387ef030e2d84966a25f74b9a63660f5", "url":
+          "test_gbc.yaml"}'}
+  - name: test-preprocess
+    container:
+      args: []
+      command:
+      - sh
+      - -c
+      - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+        'pandas' 'scikit-learn' 'kfp' 'numpy' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+        -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn' 'kfp'
+        'numpy' --user) && "$0" "$@"
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - "def test_preprocess():\n    class TestIntrusionDetection(unittest.TestCase):\n\
+        \        def test_df_shape(self):\n            cols = intrusiondetection.column_names()\n\
+        \            file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+        \            df = pd.read_csv(file_path, names=cols)\n            self.assertEqual(df.shape,\
+        \ (494021, 42))    \n\n        def test_value_counts(self):\n            cols\
+        \ = intrusiondetection.column_names()\n            file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+        \            df = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n\
+        \            self.assertEqual(df['outcome'].value_counts()[0], 97278)\n  \
+        \          self.assertEqual(df['outcome'].value_counts()[1], 396743)\n\n \
+        \       def test_normalization(self):\n            cols = intrusiondetection.column_names()\n\
+        \            file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+        \            df = pd.read_csv(file_path, names=cols)\n            df_normal\
+        \ = intrusiondetection.preprocess(df.copy())\n            X = df_normal.drop(columns=[\"\
+        outcome\"])\n            for label, content in X.describe().items():\n   \
+        \             if is_numeric_dtype(df[label]):\n                    self.assertAlmostEqual(content['mean'],\
+        \ 0)\n                    self.assertAlmostEqual(content['std'], 1)\n    \
+        \            else:\n                    self.assertEqual(content['min'], 0)\n\
+        \n        def test_components_drop(self):\n            cols = intrusiondetection.column_names()\n\
+        \            file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+        \            df = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n\
+        \            self.assertEqual(df.shape, (494021, 23))\n\n    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntrusionDetection)\n\
+        \    unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)\n\n\
+        import argparse\n_parser = argparse.ArgumentParser(prog='Test preprocess',\
+        \ description='')\n_parsed_args = vars(_parser.parse_args())\n\n_outputs =\
+        \ test_preprocess(**_parsed_args)\n"
+      image: python:3.7
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.20
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": [], "command": ["sh", "-c", "(PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+          -m pip install --quiet --no-warn-script-location ''pandas'' ''scikit-learn''
+          ''kfp'' ''numpy'' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install
+          --quiet --no-warn-script-location ''pandas'' ''scikit-learn'' ''kfp'' ''numpy''
+          --user) && \"$0\" \"$@\"", "sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def test_preprocess():\n    class TestIntrusionDetection(unittest.TestCase):\n        def
+          test_df_shape(self):\n            cols = intrusiondetection.column_names()\n            file_path
+          = ''https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv''\n            df
+          = pd.read_csv(file_path, names=cols)\n            self.assertEqual(df.shape,
+          (494021, 42))    \n\n        def test_value_counts(self):\n            cols
+          = intrusiondetection.column_names()\n            file_path = ''https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv''\n            df
+          = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n            self.assertEqual(df[''outcome''].value_counts()[0],
+          97278)\n            self.assertEqual(df[''outcome''].value_counts()[1],
+          396743)\n\n        def test_normalization(self):\n            cols = intrusiondetection.column_names()\n            file_path
+          = ''https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv''\n            df
+          = pd.read_csv(file_path, names=cols)\n            df_normal = intrusiondetection.preprocess(df.copy())\n            X
+          = df_normal.drop(columns=[\"outcome\"])\n            for label, content
+          in X.describe().items():\n                if is_numeric_dtype(df[label]):\n                    self.assertAlmostEqual(content[''mean''],
+          0)\n                    self.assertAlmostEqual(content[''std''], 1)\n                else:\n                    self.assertEqual(content[''min''],
+          0)\n\n        def test_components_drop(self):\n            cols = intrusiondetection.column_names()\n            file_path
+          = ''https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv''\n            df
+          = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n            self.assertEqual(df.shape,
+          (494021, 23))\n\n    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntrusionDetection)\n    unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)\n\nimport
+          argparse\n_parser = argparse.ArgumentParser(prog=''Test preprocess'', description='''')\n_parsed_args
+          = vars(_parser.parse_args())\n\n_outputs = test_preprocess(**_parsed_args)\n"],
+          "image": "python:3.7"}}, "name": "Test preprocess"}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "49ad3173e5d3e4b81a048dfc945d6b20d34350e601186c7d6219adf198ef1ed4", "url":
+          "test_preprocess.yaml"}'}
+  arguments:
+    parameters: []
+  serviceAccountName: pipeline-runner
