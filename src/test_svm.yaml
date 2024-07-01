@@ -23,7 +23,7 @@ implementation:
                   file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'
                   df = pd.read_csv(file_path, names=cols)
                   df = intrusiondetection.preprocess(df)
-                  df = df[:100000]
+                  df = df.sample(100000)
                   X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)
                   model = SVC(random_state=42)
                   model.fit(X_train, y_train)
@@ -35,7 +35,7 @@ implementation:
                   file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'
                   df = pd.read_csv(file_path, names=cols)
                   df = intrusiondetection.preprocess(df)
-                  df = df[:100000]
+                  df = df.sample(100000)
                   X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)
                   model = SVC(random_state=42)
                   model.fit(X_train, y_train)
@@ -47,7 +47,7 @@ implementation:
                   file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'
                   df = pd.read_csv(file_path, names=cols)
                   df = intrusiondetection.preprocess(df)
-                  df = df[:100000]
+                  df = df.sample(100000)
                   X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)
                   model = SVC(kernel='linear', random_state=42)
                   model.fit(X_train, y_train)
