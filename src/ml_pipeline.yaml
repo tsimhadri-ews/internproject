@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
   generateName: intrusion-detection-unit-testing-pipeline-
-  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.20, pipelines.kubeflow.org/pipeline_compilation_time: '2024-07-01T18:55:36.881261',
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.20, pipelines.kubeflow.org/pipeline_compilation_time: '2024-07-01T19:40:13.539329',
     pipelines.kubeflow.org/pipeline_spec: '{"description": "A pipeline to test the
       functions and training and testing results from the intrusion detection pipeline
       componenets", "name": "Intrusion Detection Unit Testing Pipeline"}'}
@@ -116,7 +116,9 @@ spec:
           0.9)\n            self.assertGreaterEqual(f1, 0.9)\n\n    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntrusionDetection)\n    unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)\n\nimport
           argparse\n_parser = argparse.ArgumentParser(prog=''Test gbc'', description='''')\n_parsed_args
           = vars(_parser.parse_args())\n\n_outputs = test_gbc(**_parsed_args)\n"],
-          "image": "python:3.7"}}, "name": "Test gbc"}', pipelines.kubeflow.org/component_ref: '{}'}
+          "image": "python:3.7"}}, "name": "Test gbc"}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "e70bba1fb3954b38fe7b961e20e74f98387ef030e2d84966a25f74b9a63660f5", "url":
+          "test_gbc.yaml"}'}
   - name: test-preprocess
     container:
       args: []
@@ -191,7 +193,9 @@ spec:
           (494021, 23))\n\n    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntrusionDetection)\n    unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)\n\nimport
           argparse\n_parser = argparse.ArgumentParser(prog=''Test preprocess'', description='''')\n_parsed_args
           = vars(_parser.parse_args())\n\n_outputs = test_preprocess(**_parsed_args)\n"],
-          "image": "python:3.7"}}, "name": "Test preprocess"}', pipelines.kubeflow.org/component_ref: '{}'}
+          "image": "python:3.7"}}, "name": "Test preprocess"}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "49ad3173e5d3e4b81a048dfc945d6b20d34350e601186c7d6219adf198ef1ed4", "url":
+          "test_preprocess.yaml"}'}
   arguments:
     parameters: []
   serviceAccountName: pipeline-runner
