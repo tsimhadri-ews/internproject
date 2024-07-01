@@ -1,0 +1,65 @@
+name: Test rfc
+implementation:
+  container:
+    image: python:3.7
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas' 'scikit-learn' 'kfp' 'numpy' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+      -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn' 'kfp'
+      'numpy' --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - |
+      def test_rfc():
+          class TestIntrusionDetection(unittest.TestCase):
+              def test_rfc_training(self):
+                  cols = intrusiondetection.column_names()
+                  file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'
+                  df = pd.read_csv(file_path, names=cols)
+                  df = intrusiondetection.preprocess(df)
+                  X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)
+                  model = RandomForestClassifier(random_state=42)
+                  model.fit(X_train, y_train)
+                  self.assertIsNotNone(model)
+                  self.assertTrue(hasattr(model, 'max_depth'))
+
+              def test_rfc_prediction(self):
+                  cols = intrusiondetection.column_names()
+                  file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'
+                  df = pd.read_csv(file_path, names=cols)
+                  df = intrusiondetection.preprocess(df)
+                  X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)
+                  model = RandomForestClassifier(random_state=42)
+                  model.fit(X_train, y_train)
+                  predictions = model.predict(X_test)
+                  self.assertEqual(len(predictions), len(X_test))
+
+              def test_rfc_accuracy(self):
+                  cols = intrusiondetection.column_names()
+                  file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'
+                  df = pd.read_csv(file_path, names=cols)
+                  df = intrusiondetection.preprocess(df)
+                  X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)
+                  model = RandomForestClassifier(random_state=42)
+                  model.fit(X_train, y_train)
+                  predictions = model.predict(X_test)
+                  accuracy = accuracy_score(y_test, predictions)
+                  f1 = f1_score(y_test, predictions)
+                  self.assertGreaterEqual(accuracy, 0.9)
+                  self.assertGreaterEqual(f1, 0.9)
+
+          suite = unittest.TestLoader().loadTestsFromTestCase(TestIntrusionDetection)
+          unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)
+
+      import argparse
+      _parser = argparse.ArgumentParser(prog='Test rfc', description='')
+      _parsed_args = vars(_parser.parse_args())
+
+      _outputs = test_rfc(**_parsed_args)
+    args: []
