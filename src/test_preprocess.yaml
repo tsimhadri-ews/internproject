@@ -1,0 +1,42 @@
+name: Test preprocess
+implementation:
+  container:
+    image: python:3.7
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas' 'scikit-learn' 'kfp' 'numpy' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+      -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn' 'kfp'
+      'numpy' --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - "def test_preprocess():\n    class TestIntrusionDetection(unittest.TestCase):\n\
+      \        def test_df_shape(self):\n            cols = intrusiondetection.column_names()\n\
+      \            file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+      \            df = pd.read_csv(file_path, names=cols)\n            self.assertEqual(df.shape,\
+      \ (494021, 42))    \n\n        def test_value_counts(self):\n            cols\
+      \ = intrusiondetection.column_names()\n            file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+      \            df = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n\
+      \            self.assertEqual(df['outcome'].value_counts()[0], 97278)\n    \
+      \        self.assertEqual(df['outcome'].value_counts()[1], 396743)\n\n     \
+      \   def test_normalization(self):\n            cols = intrusiondetection.column_names()\n\
+      \            file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+      \            df = pd.read_csv(file_path, names=cols)\n            df_normal\
+      \ = intrusiondetection.preprocess(df.copy())\n            X = df_normal.drop(columns=[\"\
+      outcome\"])\n            for label, content in X.describe().items():\n     \
+      \           if is_numeric_dtype(df[label]):\n                    self.assertAlmostEqual(content['mean'],\
+      \ 0)\n                    self.assertAlmostEqual(content['std'], 1)\n      \
+      \          else:\n                    self.assertEqual(content['min'], 0)\n\n\
+      \        def test_components_drop(self):\n            cols = intrusiondetection.column_names()\n\
+      \            file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+      \            df = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n\
+      \            self.assertEqual(df.shape, (494021, 23))\n\n    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntrusionDetection)\n\
+      \    unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)\n\nimport\
+      \ argparse\n_parser = argparse.ArgumentParser(prog='Test preprocess', description='')\n\
+      _parsed_args = vars(_parser.parse_args())\n\n_outputs = test_preprocess(**_parsed_args)\n"
+    args: []

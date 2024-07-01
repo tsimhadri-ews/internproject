@@ -1,0 +1,71 @@
+name: Test ann
+implementation:
+  container:
+    image: python:3.7
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas' 'scikit-learn' 'kfp' 'numpy' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+      -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn' 'kfp'
+      'numpy' --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - "def test_ann():\n    class TestIntrusionDetection(unittest.TestCase):\n   \
+      \     def test_ann_training(self):\n            cols = intrusiondetection.column_names()\n\
+      \            file_path = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+      \            df = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n\
+      \            X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)\n\
+      \            input_shape = [X_train.shape[1]]\n            model = tf.keras.Sequential([\n\
+      \                tf.keras.layers.Dense(units=64, activation='relu', input_shape=input_shape),\n\
+      \                tf.keras.layers.Dense(units=64, activation='relu'),\n     \
+      \           tf.keras.layers.Dense(units=1)\n            ])\n            model.build()\n\
+      \            model.compile(optimizer='adam', loss='mae', metrics=['accuracy'])\
+      \  \n            earlystopping = callbacks.EarlyStopping(monitor=\"val_loss\"\
+      ,\n                                                        mode=\"min\",\n \
+      \                                                       patience=5,\n      \
+      \                                                  restore_best_weights=True)\n\
+      \            history = model.fit(X_train, y_train, validation_data=(X_test,y_test),\
+      \ batch_size=256, epochs=60,callbacks=[earlystopping], verbose=0)\n        \
+      \    self.assertIsNotNone(model)\n\n        def test_ann_prediction(self):\n\
+      \            cols = intrusiondetection.column_names()\n            file_path\
+      \ = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+      \            df = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n\
+      \            X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)\n\
+      \            input_shape = [X_train.shape[1]]\n            model = tf.keras.Sequential([\n\
+      \                tf.keras.layers.Dense(units=64, activation='relu', input_shape=input_shape),\n\
+      \                tf.keras.layers.Dense(units=64, activation='relu'),\n     \
+      \           tf.keras.layers.Dense(units=1)\n            ])\n            model.build()\n\
+      \            model.compile(optimizer='adam', loss='mae', metrics=['accuracy'])\
+      \  \n            earlystopping = callbacks.EarlyStopping(monitor=\"val_loss\"\
+      ,\n                                                        mode=\"min\",\n \
+      \                                                       patience=5,\n      \
+      \                                                  restore_best_weights=True)\n\
+      \            history = model.fit(X_train, y_train, validation_data=(X_test,y_test),\
+      \ batch_size=256, epochs=60,callbacks=[earlystopping], verbose=0)\n        \
+      \    predictions = (model.predict(X_test) > 0.5).astype(\"int32\")\n       \
+      \     self.assertEqual(len(predictions), len(X_test))\n\n        def test_ann_accuracy(self):\n\
+      \            cols = intrusiondetection.column_names()\n            file_path\
+      \ = 'https://raw.githubusercontent.com/tsimhadri-ews/internproject/intrusion-detection-0/src/kddcup.data_10_percent_corrected.csv'\n\
+      \            df = pd.read_csv(file_path, names=cols)\n            df = intrusiondetection.preprocess(df)\n\
+      \            X_train, X_test, y_train, y_test = intrusiondetection.traintest_split(df)\n\
+      \            input_shape = [X_train.shape[1]]\n            model = tf.keras.Sequential([\n\
+      \                tf.keras.layers.Dense(units=64, activation='relu', input_shape=input_shape),\n\
+      \                tf.keras.layers.Dense(units=64, activation='relu'),\n     \
+      \           tf.keras.layers.Dense(units=1)\n            ])\n            model.build()\n\
+      \            model.compile(optimizer='adam', loss='mae', metrics=['accuracy'])\
+      \  \n            earlystopping = callbacks.EarlyStopping(monitor=\"val_loss\"\
+      ,\n                                                        mode=\"min\",\n \
+      \                                                       patience=5,\n      \
+      \                                                  restore_best_weights=True)\n\
+      \            history = model.fit(X_train, y_train, validation_data=(X_test,y_test),\
+      \ batch_size=256, epochs=60,callbacks=[earlystopping], verbose=0)\n        \
+      \    self.assertGreater(history.history['accuracy'][-1], 0.9)\n\n    suite =\
+      \ unittest.TestLoader().loadTestsFromTestCase(TestIntrusionDetection)\n    unittest.TextTestRunner(verbosity=4,stream=sys.stderr).run(suite)\n\
+      \nimport argparse\n_parser = argparse.ArgumentParser(prog='Test ann', description='')\n\
+      _parsed_args = vars(_parser.parse_args())\n\n_outputs = test_ann(**_parsed_args)\n"
+    args: []
