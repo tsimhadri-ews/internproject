@@ -1,7 +1,10 @@
 name: run-python-script
-run-name: ${{ github.actor }} is running changes.py
+run-name: ${{ github.actor }} is running test.py
 
-on: [push]
+on:
+  push:
+    branches:
+      - actions_tes
 
 jobs:
   run-python-script:
@@ -13,8 +16,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.7' 
-
       
-      - name: Run changes.py
+      - name: Run test.py
         run: python test.py
 
