@@ -1,0 +1,20 @@
+name: run-python-script
+run-name: ${{ github.actor }} is running changes.py
+
+on: [push]
+
+jobs:
+  run-python-script:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.7' 
+      
+      - name: Run changes.py
+        run: python test.py
+
+
