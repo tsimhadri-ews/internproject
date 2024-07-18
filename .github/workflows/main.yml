@@ -19,5 +19,5 @@ jobs:
         with:
           python-version: '3.7' 
       
-      - name: Run test.py
-        run: python test.py
+      - name: Run CI.py
+        run: python CI.py
