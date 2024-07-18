@@ -4,7 +4,7 @@ run-name: ${{ github.actor }} is running test.py
 on:
   push:
     branches:
-      - actions_tes
+      - actions_test
 
 jobs:
   run-python-script:
