@@ -13,7 +13,7 @@ template = '''
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Flask Button Example</title>
+    <title>HITL Intrusion</title>
   </head>
   <body>
     <h1>Prediction Result</h1>
@@ -71,7 +71,7 @@ def fetch_and_process_data():
     except Exception as e:
         return None, f"Failed to establish connection: {e}"
 
-    fetch_query = "SELECT * FROM malware_data WHERE outcome = 1;"
+    fetch_query = "SELECT * FROM intrusion_data WHERE outcome = 2;"
     try:
         df = pd.read_sql(fetch_query, conn)
         df = df.head()
@@ -82,18 +82,18 @@ def fetch_and_process_data():
     message1 = ""
     try:
         insert_query = """
-        INSERT INTO malware_outcomes (uid, outcome)
+        INSERT INTO intrusion_outcomes (uid, outcome)
         VALUES (%s, %s)
         """
         update_query = """
-        UPDATE malware_data
+        UPDATE intrusion_data
         SET outcome = %s
         WHERE uid = %s
         """
         
         for index, row in df.iterrows():
             message1 = f"row {row}.<br>"
-            message1 += f"UID {row['uid']} already exists in malware_outcomes with outcome .<br>"
+            message1 += f"UID {row['uid']} already exists in intrusion_outcomes with outcome .<br>"
             print(message1)
             
             cursor.execute(update_query, (row['outcome'], row['uid']))
@@ -126,7 +126,7 @@ def handle_post_action(action):
         return f"Failed to establish connection: {e}"
 
     try:
-        select_query = "SELECT * FROM malware_outcomes"
+        select_query = "SELECT * FROM intrusion_outcomes"
         cursor.execute(select_query)
         rows = cursor.fetchall()
         print(rows)
@@ -137,13 +137,13 @@ def handle_post_action(action):
             
             if action == 'correct':
                 print("yes pressed")
-                update_query = "UPDATE malware_data SET outcome = %s WHERE uid = %s"
+                update_query = "UPDATE intrusion_data SET outcome = %s WHERE uid = %s"
                 cursor.execute(update_query, (outcome, uid))
                 message2 = " Yes Data Updated Pressed"
 
             elif action == 'incorrect':
                 print("no pressed")
-                update_query = "UPDATE malware_data SET outcome = %s WHERE uid = %s"
+                update_query = "UPDATE intrusion_data SET outcome = %s WHERE uid = %s"
                 cursor.execute(update_query, (1 - outcome, uid))  # Assuming binary outcome, flipping 0 to 1 and 1 to 0
 
                 message2 = " No Data Updated Pressed"
@@ -181,6 +181,6 @@ signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
     try:
-        app.run(debug=True, host='0.0.0.0', port=5026)
+        app.run(debug=True, host='0.0.0.0', port=5027)
     except KeyboardInterrupt:
         signal_handler(signal.SIGINT, None)
