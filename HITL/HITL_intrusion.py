@@ -84,7 +84,7 @@ def fetch_and_process_data():
     except Exception as e:
         return None, f"Failed to establish connection: {e}"
 
-    fetch_query = "SELECT * FROM intrusion_data WHERE outcome = 2;"
+    fetch_query = "SELECT * FROM intrusion_data as md join intrusion_outcomes mo on mo.uid=md.uid WHERE md.outcome = 2;"
     try:
         df = pd.read_sql(fetch_query, conn)
         df = df.head()
@@ -205,6 +205,6 @@ signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
     try:
-        app.run(debug=True, host='0.0.0.0', port=5033)
+        app.run(debug=True, host='0.0.0.0', port=5034)
     except KeyboardInterrupt:
         signal_handler(signal.SIGINT, None)
