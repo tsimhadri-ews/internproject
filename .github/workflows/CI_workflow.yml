@@ -6,9 +6,9 @@ name: CI
 on:
   
   push:
-    branches: [ "actions_test" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "actions_test" ]
+    branches: [ "main" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,5 +30,15 @@ jobs:
         with:
           python-version: '3.7' 
       
-      - name: Run test.py
-        run: python test.py
+      - name: Install dependencies
+        working-directory: ./Pipeline/Intrusion/Production
+        run: pip install -r main_requirements.txt
+      
+      - name: Run read
+        working-directory: ./Pipeline/Intrusion/Experiment/templates
+        run: python read_file.py
+
+      # Run the second Python script
+      - name: Run train
+        working-directory: ./Pipeline/Intrusion/Experiment/templates
+        run: python train_op.py
