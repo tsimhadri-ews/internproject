@@ -18,7 +18,6 @@ read_data_op = kfp.components.load_component_from_file('preprocess.yaml')
 train_op = kfp.components.load_component_from_file('train.yaml')
 eval_deploy_op = kfp.components.load_component_from_file('eval_deploy.yaml')
 
-
 def ml_pipeline():
     check_condition = check_condition_op()
     check_condition.execution_options.caching_strategy.max_cache_staleness = "P0D"
