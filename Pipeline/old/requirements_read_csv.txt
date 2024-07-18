@@ -1,0 +1,9 @@
+# requirements_read_csv.txt
+pandas==1.1.5
+scikit-learn==1.0.1
+kfp
+numpy
+minio
+psycopg2-binary
+sqlalchemy==1.4.45
+boto3
