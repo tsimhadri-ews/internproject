@@ -17,15 +17,28 @@ template = '''
   </head>
   <body>
     <h1>Prediction Result</h1>
+    <h3> Data: </h3>
     <p>{{ message1|safe }}</p>
     <p>{{ message2|safe }}</p>
+    <h3> Is this correct? </h3>
     <form method="post">
       <button name="action" type="submit" value="correct">Yes</button>
       <button name="action" type="submit" value="incorrect">No</button>
     </form>
+    <h3> Total Reviewed: </h3>
+    <p> {{total|safe}} </p>
+    <h3> Correct Predictions: </h3>
+    <p> {{yes_count|safe}} </p>
+    <h3> Incorrect Predictions: </h3>
+    <p> {{no_count|safe}} </p>
+
   </body>
 </html>
 '''
+
+total = 0
+yes_count = 0
+no_count = 0
 
 # Function to get the database credentials from AWS Secrets Manager
 def get_secret():
@@ -112,6 +125,7 @@ def fetch_and_process_data():
 
 # Function to handle the POST request actions
 def handle_post_action(action):
+    global total, yes_count, no_count
     (user, pswd, host, port, db) = get_secret()
     try:
         conn = psycopg2.connect(
@@ -124,6 +138,9 @@ def handle_post_action(action):
         cursor = conn.cursor()
     except Exception as e:
         return f"Failed to establish connection: {e}"
+    
+   
+    
 
     try:
         select_query = "SELECT * FROM intrusion_outcomes"
@@ -136,18 +153,22 @@ def handle_post_action(action):
             uid, outcome = row
             
             if action == 'correct':
+                yes_count += 1 
+                print(yes_count)
                 print("yes pressed")
                 update_query = "UPDATE intrusion_data SET outcome = %s WHERE uid = %s"
                 cursor.execute(update_query, (outcome, uid))
                 message2 = " Yes Data Updated Pressed"
 
             elif action == 'incorrect':
+                no_count += 1
+                print(no_count)
                 print("no pressed")
                 update_query = "UPDATE intrusion_data SET outcome = %s WHERE uid = %s"
                 cursor.execute(update_query, (1 - outcome, uid))  # Assuming binary outcome, flipping 0 to 1 and 1 to 0
 
                 message2 = " No Data Updated Pressed"
-        
+            total += 1
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -162,16 +183,19 @@ def handle_post_action(action):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    global total, yes_count, no_count
     message1, error = fetch_and_process_data()
     message2 = ""
+    
+    
     if request.method == 'POST':
         action = request.form['action']
-        message2 = handle_post_action(action)
+        message2  = handle_post_action(action)
         
     if error:
         message1 = error
 
-    return render_template_string(template, message1=message1, message2=message2)
+    return render_template_string(template, message1=message1, message2=message2, total=total, yes_count=yes_count, no_count=no_count)
 
 def signal_handler(sig, frame):
     print('Shutting down the server...')
@@ -181,6 +205,6 @@ signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
     try:
-        app.run(debug=True, host='0.0.0.0', port=5027)
+        app.run(debug=True, host='0.0.0.0', port=5033)
     except KeyboardInterrupt:
         signal_handler(signal.SIGINT, None)
