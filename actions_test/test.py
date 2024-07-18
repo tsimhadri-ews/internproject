@@ -1,1 +1,1 @@
-print("actions trigger")
+print("trigger")
