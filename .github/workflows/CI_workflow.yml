@@ -43,6 +43,10 @@ jobs:
         working-directory: ./Pipeline/Intrusion/Experiment/templates
         run: python train_op.py
 
+      - name: Install dependencies
+        working-directory: ./Pipeline/Intrusion/Production
+        run: pip install -r compile_requirements.txt
+
 
       - name: Run compile
         working-directory: ./Pipeline/Intrusion/Production
