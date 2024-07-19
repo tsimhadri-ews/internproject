@@ -42,3 +42,8 @@ jobs:
       - name: Run train
         working-directory: ./Pipeline/Intrusion/Experiment/templates
         run: python train_op.py
+
+
+      - name: Run compile
+        working-directory: ./Pipeline/Intrusion/Production
+        run: python compile.py
