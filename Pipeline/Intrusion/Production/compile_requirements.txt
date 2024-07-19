@@ -1,0 +1,6 @@
+kfp==1.8.9
+protobuf==3.20.1
+google-api-python-client==2.39.0
+google-auth==2.6.0
+google-auth-oauthlib==0.5.1
+google-cloud-storage==1.43.0
