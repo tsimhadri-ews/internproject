@@ -111,7 +111,7 @@ def run_pipeline(yaml_file):
     pipeline_file = yaml_file 
 
     # Define the pipeline name
-    pipeline_name = "test pipeline"
+    pipeline_name = "test pipeline3"
 
     # Upload the pipeline
     pipeline = client.upload_pipeline(pipeline_file, pipeline_name=pipeline_name)
