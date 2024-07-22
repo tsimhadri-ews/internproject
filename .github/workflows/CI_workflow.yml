@@ -51,7 +51,7 @@ jobs:
         run: pip install -r compile_requirements.txt
 
       - name: Run compile
-        working-directory: ./Pipeline/Intrusion/Production
+        working-directory: ./Pipeline/Intrusion/Experiment
         env:
           KUBEFLOW_USERNAME: ${{ secrets.USER }}
           KUBEFLOW_PASSWORD: ${{ secrets.PASSWORD }}
