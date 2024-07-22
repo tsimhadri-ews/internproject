@@ -83,8 +83,8 @@ def run_pipeline(yaml_file):
     KUBEFLOW_USERNAME = os.getenv('USER')
     KUBEFLOW_PASSWORD = os.getenv('PASSWORD')
 
-    print(KUBEFLOW_USERNAME)
-    print(KUBEFLOW_PASSWORD)
+    print("user", KUBEFLOW_USERNAME)
+    print("password", KUBEFLOW_PASSWORD)
 
 
     session = requests.Session()
