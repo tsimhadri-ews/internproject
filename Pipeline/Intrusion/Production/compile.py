@@ -94,7 +94,7 @@ def run_pipeline(yaml_file):
     client = kfp.Client(host=api_endpoint, cookies=cookie_str)
 
 
-    experiment_name = 'Test Experiment'
+    experiment_name = 'Test Experiment2'
 
     try:
         experiment = client.create_experiment(name=experiment_name)
@@ -116,7 +116,7 @@ def run_pipeline(yaml_file):
     pipeline = client.upload_pipeline(pipeline_file, pipeline_name=pipeline_name)
 
     print(f'Pipeline {pipeline_name} uploaded successfully with ID: {pipeline.id}')
-    run_name = 'Intrusion Detection Run'
+    run_name = 'Intrusion Detection Run9' #change 
     arguments = {} 
 
     try:
