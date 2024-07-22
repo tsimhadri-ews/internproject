@@ -51,3 +51,9 @@ jobs:
       - name: Run compile
         working-directory: ./Pipeline/Intrusion/Production
         run: python compile.py
+
+      - name: Upload output.yaml
+        uses: actions/upload-artifact@v2
+        with:
+          name: generate output
+          path: intrusion_pipeline.yaml
