@@ -42,42 +42,6 @@ def ml_pipeline():
         eval_deploy.execution_options.caching_strategy.max_cache_staleness = "P0D"
 print("compiling pipeline")
 
-import boto3
-import json
-from botocore.exceptions import ClientError
-
-def get_secret():
-    secret_name = "KubeflowCreds"
-    region_name = "us-east-1"
-
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager',
-        region_name=region_name
-    )
-
-    try:
-        get_secret_value_response = client.get_secret_value(
-            SecretId=secret_name
-        )
-    except ClientError as e:
-        raise e
-
-    secret = get_secret_value_response['SecretString']
-
-    # Parse the secret string to get the credentials
-    secret_dict = json.loads(secret)
-    username = secret_dict['user']
-    password = secret_dict['password']
-
-    return username, password
-
-
-user, pswd = get_secret()
-
-
-
 def run_pipeline(yaml_file):
     KUBEFLOW_HOST = 'http://acc85673e1f094914a006f330bb51cb8-353421018.us-east-1.elb.amazonaws.com'
     KUBEFLOW_USERNAME = os.getenv('USER')
