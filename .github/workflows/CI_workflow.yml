@@ -56,4 +56,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: generate output
-          path: intrusion_pipeline.yaml
+          path: /home/runner/work/internproject/internproject/Pipeline/Intrusion/Production/intrusion_pipeline.yaml
