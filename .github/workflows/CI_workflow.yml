@@ -61,6 +61,7 @@ jobs:
         env:
           KUBEFLOW_USERNAME: ${{ secrets.USER }}
           KUBEFLOW_PASSWORD: ${{ secrets.PASSWORD }}
+          KUBEFLOW_TOKEN: ${{ secrets.TOKEN }}
         run: python compile.py
 
       - name: Upload output.yaml I can remove this 
