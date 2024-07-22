@@ -32,7 +32,8 @@ def ml_pipeline():
         train.execution_options.caching_strategy.max_cache_staleness = "P0D"
         eval_deploy = eval_deploy_op().after(train)
         eval_deploy.execution_options.caching_strategy.max_cache_staleness = "P0D"
-
+print("compiling pipeline")
 # Compile the pipeline
 #kfp.compiler.Compiler().compile(ml_pipeline, 'intrusion_pipeline.yaml')
 kfp.compiler.Compiler().compile(ml_pipeline, 'intrusion_pipeline.yaml')
+print("Compiled the pipeline")
