@@ -6,9 +6,9 @@ name: CI
 on:
   
   push:
-    branches: [ "templates" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "templates" ]
+    branches: [ "main" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
