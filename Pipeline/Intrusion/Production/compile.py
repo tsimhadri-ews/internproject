@@ -92,7 +92,7 @@ def run_pipeline(yaml_file):
     print(f"Formatted cookie string: {cookie_str}")
 
     api_endpoint = f"{KUBEFLOW_HOST}/pipeline"
-    namespace = "kubeflow"
+    namespace = "kubeflow-user-example-com"
     client = kfp.Client(host=api_endpoint, cookies=cookie_str, namespace=namespace, existing_token=KUBEFLOW_TOKEN )
 
 
