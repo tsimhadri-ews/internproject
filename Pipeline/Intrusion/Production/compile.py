@@ -80,8 +80,11 @@ user, pswd = get_secret()
 
 def run_pipeline(yaml_file):
     KUBEFLOW_HOST = 'http://acc85673e1f094914a006f330bb51cb8-353421018.us-east-1.elb.amazonaws.com'
-    KUBEFLOW_USERNAME = user
-    KUBEFLOW_PASSWORD = pswd
+    KUBEFLOW_USERNAME = os.getenv('USER')
+    KUBEFLOW_PASSWORD = os.getenv('PASSWORD')
+
+    print(KUBEFLOW_USERNAME)
+    print(KUBEFLOW_PASSWORD)
 
 
     session = requests.Session()
