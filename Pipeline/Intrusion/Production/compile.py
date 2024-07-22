@@ -91,13 +91,14 @@ def run_pipeline(yaml_file):
     print(f"Formatted cookie string: {cookie_str}")
 
     api_endpoint = f"{KUBEFLOW_HOST}/pipeline"
-    client = kfp.Client(host=api_endpoint, cookies=cookie_str)
+    namespace = "kubeflow"
+    client = kfp.Client(host=api_endpoint, cookies=cookie_str, namespace=namespace)
 
 
     experiment_name = 'Test Experiment2'
 
     try:
-        experiment = client.create_experiment(name=experiment_name)
+        experiment = client.create_experiment(name=experiment_name, namespace=namespace)
         print(f'Experiment {experiment_name} created with ID: {experiment.id}')
     except ApiException as e:
         print(f"Exception when creating experiment: {e}")
