@@ -55,13 +55,40 @@ jobs:
         run: pip install -r compile_requirements.txt
 
 
-      - name: Run compile
-        working-directory: ./Pipeline/Intrusion/Production
+      - name: Install dependencies
+        run: |
+          pip install kfp requests beautifulsoup4
+  
+      - name: Run Kubeflow Pipeline
         env:
-          KUBEFLOW_USERNAME: ${{ secrets.USER }}
-          KUBEFLOW_PASSWORD: ${{ secrets.PASSWORD }}
-          KUBEFLOW_TOKEN: ${{ secrets.TOKEN }}
-        run: python compile.py
+          
+          KUBEFLOW_TOKEN: ${{ secrets.KUBEFLOW_TOKEN }}
+        run: |
+          import kfp
+          from kfp_server_api.exceptions import ApiException
+  
+          # Constants
+          KUBEFLOW_HOST = 'http://acc85673e1f094914a006f330bb51cb8-353421018.us-east-1.elb.amazonaws.com'
+          TOKEN = "${{ secrets.KUBEFLOW_TOKEN }}"
+          NAMESPACE = 'kubeflow-user-example-com'
+  
+          # Initialize the client
+          client = kfp.Client(host=KUBEFLOW_HOST, existing_token=TOKEN, namespace=NAMESPACE)
+  
+          experiment_name = 'Test Experiment'
+  
+          try:
+              experiment = client.create_experiment(name=experiment_name)
+              print(f'Experiment {experiment_name} created with ID: {experiment.id}')
+          except ApiException as e:
+              print(f"Exception when creating experiment: {e}")
+              print(f"Status: {e.status}")
+              print(f"Reason: {e.reason}")
+              print(f"Headers: {e.headers}")
+              print(f"Body: {e.body}")
+  
+          # List experiments to verify creation
+          print(client.list_experiments())
 
       - name: Upload output.yaml I can remove this 
         uses: actions/upload-artifact@v2
