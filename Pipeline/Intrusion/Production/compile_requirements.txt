@@ -4,3 +4,7 @@ google-api-python-client
 google-auth
 google-auth-oauthlib
 google-cloud-storage
+requests==2.26.0
+beautifulsoup4==4.10.0
+kfp-server-api==1.7.1
+
