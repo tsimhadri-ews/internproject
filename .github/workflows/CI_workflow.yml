@@ -60,6 +60,6 @@ jobs:
       - name: Upload and run pipeline on Kubeflow
         working-directory: ./actions_test
         env:
-          KUBEFLOW_USERNAME: ${{ secrets.USERNAME }}
+          KUBEFLOW_USERNAME: ${{ secrets.USER }}
           KUBEFLOW_PASSWORD: ${{ secrets.PASSWORD }}
         run: python connect_kf.py 
