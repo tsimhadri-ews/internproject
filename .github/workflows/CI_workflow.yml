@@ -46,10 +46,6 @@ jobs:
         working-directory: ./Pipeline/Intrusion/Production 
         run: python train_op.py
 
-      - name: Run eval
-        working-directory: ./Pipeline/Intrusion/Production 
-        run: python model_eval_deploy.py
-
       - name: Install dependencies
         working-directory: ./Pipeline/Intrusion/Production
         run: pip install -r compile_requirements.txt
