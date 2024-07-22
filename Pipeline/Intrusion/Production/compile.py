@@ -46,10 +46,11 @@ def run_pipeline(yaml_file):
     KUBEFLOW_HOST = 'http://acc85673e1f094914a006f330bb51cb8-353421018.us-east-1.elb.amazonaws.com'
     KUBEFLOW_USERNAME = os.getenv('KUBEFLOW_USERNAME') #runner
     KUBEFLOW_PASSWORD = os.getenv('KUBEFLOW_PASSWORD') #none
+    KUBEFLOW_TOKEN = os.getenv('KUBEFLOW_TOKEN')
 
     print("user", KUBEFLOW_USERNAME)
     print("password", KUBEFLOW_PASSWORD)
-
+    print("token", KUBEFLOW_TOKEN)
 
     session = requests.Session()
     login_url = f"{KUBEFLOW_HOST}" 
@@ -92,13 +93,13 @@ def run_pipeline(yaml_file):
 
     api_endpoint = f"{KUBEFLOW_HOST}/pipeline"
     namespace = "kubeflow"
-    client = kfp.Client(host=api_endpoint, cookies=cookie_str, namespace=namespace)
+    client = kfp.Client(host=api_endpoint, cookies=cookie_str, existing_token=KUBEFLOW_TOKEN )
 
 
     experiment_name = 'Test Experiment2'
 
     try:
-        experiment = client.create_experiment(name=experiment_name, namespace=namespace)
+        experiment = client.create_experiment(name=experiment_name)
         print(f'Experiment {experiment_name} created with ID: {experiment.id}')
     except ApiException as e:
         print(f"Exception when creating experiment: {e}")
