@@ -5,6 +5,7 @@ from check_condition import check_condition
 from read_file import read_file
 from train_op import train_op
 from model_eval_deploy import model_eval_deploy
+import os 
 
 print("running file")
 
@@ -36,4 +37,5 @@ print("compiling pipeline")
 # Compile the pipeline
 #kfp.compiler.Compiler().compile(ml_pipeline, 'intrusion_pipeline.yaml')
 kfp.compiler.Compiler().compile(ml_pipeline, 'intrusion_pipeline.yaml')
+print(f"Compiled the pipeline to: {os.path.abspath('intrusion_pipeline.yaml')}")
 print("Compiled the pipeline")
