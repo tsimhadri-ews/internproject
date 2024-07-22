@@ -26,7 +26,7 @@ eval_deploy = components.func_to_container_op(func=model_eval_deploy, output_com
 
 read_data_op = kfp.components.load_component_from_file('preprocess.yaml')
 train_op = kfp.components.load_component_from_file('train.yaml')
-eval_deploy_op = kfp.components.load_component_from_file('eval_deploy.yaml')
+#eval_deploy_op = kfp.components.load_component_from_file('eval_deploy.yaml')
 
 def ml_pipeline():
     print("running pipeline")
@@ -38,14 +38,14 @@ def ml_pipeline():
         preprocess.execution_options.caching_strategy.max_cache_staleness = "P0D"
         train = train_op().after(preprocess)
         train.execution_options.caching_strategy.max_cache_staleness = "P0D"
-        eval_deploy = eval_deploy_op().after(train)
-        eval_deploy.execution_options.caching_strategy.max_cache_staleness = "P0D"
+        #eval_deploy = eval_deploy_op().after(train)
+        #eval_deploy.execution_options.caching_strategy.max_cache_staleness = "P0D"
 print("compiling pipeline")
 
 def run_pipeline(yaml_file):
     KUBEFLOW_HOST = 'http://acc85673e1f094914a006f330bb51cb8-353421018.us-east-1.elb.amazonaws.com'
-    KUBEFLOW_USERNAME = os.getenv('KUBEFLOW_USERNAME') #runner
-    KUBEFLOW_PASSWORD = os.getenv('KUBEFLOW_PASSWORD') #none
+    KUBEFLOW_USERNAME = os.getenv('KUBEFLOW_USERNAME') 
+    KUBEFLOW_PASSWORD = os.getenv('KUBEFLOW_PASSWORD') 
     KUBEFLOW_TOKEN = os.getenv('KUBEFLOW_TOKEN')
 
     print("user", KUBEFLOW_USERNAME)
@@ -107,7 +107,6 @@ def run_pipeline(yaml_file):
         print(f"Reason: {e.reason}")
         print(f"Headers: {e.headers}")
         print(f"Body: {e.body}")
-    #print(client.list_experiments())
 
     pipeline_file = yaml_file 
 
