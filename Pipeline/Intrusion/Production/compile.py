@@ -25,6 +25,7 @@ def ml_pipeline():
     check_condition = check_condition_op()
     check_condition.execution_options.caching_strategy.max_cache_staleness = "P0D"
     with dsl.Condition(check_condition.output == 'True'):
+        print("running condition")
         preprocess = read_csv_op()
         preprocess.execution_options.caching_strategy.max_cache_staleness = "P0D"
         train = train_op().after(preprocess)
