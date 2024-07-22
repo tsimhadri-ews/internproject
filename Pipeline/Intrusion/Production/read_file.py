@@ -124,11 +124,7 @@ def read_file() -> None:
                 features_df = pd.json_normalize(chunk['features'])
                 features_df['outcome'] = chunk['outcome']
                 df = pd.concat([df, features_df], ignore_index=True)
-
-
-                
-                
-                
+   
     except Exception as e:
             print(f"Failed to fetch data: {e}")
 

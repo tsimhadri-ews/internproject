@@ -1,0 +1,9 @@
+# requirements_train.txt
+pandas
+scikit-learn==1.0.1
+numpy
+minio
+tensorflow
+psycopg2-binary
+sqlalchemy
+boto3

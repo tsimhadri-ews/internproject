@@ -1,0 +1,35 @@
+name: Check for Secrets
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  check_secrets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.7'
+
+      - name: Install truffleHog
+        run: pip install truffleHog
+
+      - name: Scan for secrets
+        run: trufflehog --json --entropy=False --max_depth=50 .
+
+      - name: Fail if secrets are found
+        if: always()
+        run: |
+          if grep -q '({"path"' truffleHog.json; then
+            echo "Secrets detected!"
+            exit 1
+          else
+            echo "No secrets found."
+          fi

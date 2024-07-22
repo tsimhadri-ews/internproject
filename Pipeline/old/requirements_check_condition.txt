@@ -1,0 +1,5 @@
+# requirements_check_condition.txt
+pandas==1.1.5
+sqlalchemy==1.4.45
+boto3
+psycopg2-binary
