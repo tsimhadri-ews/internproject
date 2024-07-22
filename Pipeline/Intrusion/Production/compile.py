@@ -107,15 +107,15 @@ def run_pipeline(yaml_file):
         print(f"Reason: {e.reason}")
         print(f"Headers: {e.headers}")
         print(f"Body: {e.body}")
-    print(client.list_experiments())
+    #print(client.list_experiments())
 
     pipeline_file = yaml_file 
 
     # Define the pipeline name
-    pipeline_name = str(pipeline_file)
+    pipeline_name = "test pipeline"
 
     # Upload the pipeline
-    pipeline = client.upload_pipeline(pipeline_file, pipeline_name=pipeline_name)
+    pipeline = client.upload_pipeline(pipeline_file, pipeline_name=pipeline_name, namespace=namespace)
 
     print(f'Pipeline {pipeline_name} uploaded successfully with ID: {pipeline.id}')
     run_name = 'Intrusion Detection Run9' #change 
