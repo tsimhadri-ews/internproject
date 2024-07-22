@@ -1,18 +1,32 @@
-import kfp
+import requests
 from kfp import Client
-import os 
+from kfp_server_api.configuration import Configuration
+from kfp_server_api.api_client import ApiClient
+import os
 
-# Replace with your Kubeflow Pipelines endpoint and credentials
-KUBEFLOW_PIPELINES_URL = 'http://127.0.0.1:30'
+# Load credentials from environment variables
+KUBEFLOW_HOST = "http://127.0.0.1:30"
+KUBEFLOW_USERNAME = os.getenv('USER')
+KUBEFLOW_PASSWORD = os.getenv('PASSWORD')
 
-# Kubeflow Pipelines URL
+# Authenticate and get session cookie
+session = requests.Session()
+login_url = f"{KUBEFLOW_HOST}/dex/auth/local/login?back=&state=y27bwdhq72jkijoltkspi7t32"
+response = session.get(login_url)
+assert response.status_code == 200, f"Failed to access login page: {response.status_code}"
 
+login_data = {
+    'login': KUBEFLOW_USERNAME,
+    'password': KUBEFLOW_PASSWORD,
+}
+response = session.post(login_url, data=login_data)
+assert response.status_code == 200, f"Failed to log in: {response.status_code}"
 
+# Extract session cookie
+session_cookie = session.cookies.get_dict()
 
-
-# Create a client to interact with Kubeflow Pipelines
-client = Client(host=KUBEFLOW_PIPELINES_URL)
-print(client)
+# Configure kfp client
+client = Client(host=f"{KUBEFLOW_HOST}/pipeline", cookies=session_cookie)
 
 # Define the path to the pipeline YAML file
 pipeline_file = 'Pipeline/Intrusion/Production/intrusion_pipeline.yaml'
@@ -31,3 +45,4 @@ experiment = client.create_experiment(experiment_name)
 run = client.run_pipeline(experiment.id, 'Intrusion Detection Run', pipeline.id)
 
 print(f'Pipeline {pipeline_name} is running with run ID: {run.id}')
+
