@@ -57,3 +57,9 @@ jobs:
         with:
           name: generate output
           path: /home/runner/work/internproject/internproject/Pipeline/Intrusion/Production/intrusion_pipeline.yaml
+      - name: Upload and run pipeline on Kubeflow
+        working-directory: ./actions_test
+        env:
+          KUBEFLOW_USERNAME: ${{ secrets.USERNAME }}
+          KUBEFLOW_PASSWORD: ${{ secrets.PASSWORD }}
+        run: python connect_kf.py 
