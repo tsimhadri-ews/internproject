@@ -31,4 +31,4 @@ def ml_pipeline():
 
 # Compile the pipeline
 #kfp.compiler.Compiler().compile(ml_pipeline, 'intrusion_pipeline.yaml')
-kfp.compiler.Compiler().compile(ml_pipeline, './Pipeline/Intrusion/Experiment/templates/intrusion_pipeline.yaml')
+kfp.compiler.Compiler().compile(ml_pipeline, 'intrusion_pipeline.yaml')
