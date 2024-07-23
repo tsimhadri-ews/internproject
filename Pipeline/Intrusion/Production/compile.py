@@ -9,6 +9,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from kfp_server_api.exceptions import ApiException
+from datetime import datetime
 
 
 
@@ -42,7 +43,7 @@ def ml_pipeline():
         #eval_deploy.execution_options.caching_strategy.max_cache_staleness = "P0D"
 print("compiling pipeline")
 
-def run_pipeline(yaml_file):
+def run_pipeline(unique_id, yaml_file):
     KUBEFLOW_HOST = 'http://acc85673e1f094914a006f330bb51cb8-353421018.us-east-1.elb.amazonaws.com'
     KUBEFLOW_USERNAME = os.getenv('KUBEFLOW_USERNAME') 
     KUBEFLOW_PASSWORD = os.getenv('KUBEFLOW_PASSWORD') 
@@ -95,8 +96,15 @@ def run_pipeline(yaml_file):
     namespace = "kubeflow-user-example-com"
     client = kfp.Client(host=api_endpoint, cookies=cookie_str, namespace=namespace, existing_token=KUBEFLOW_TOKEN )
 
+    unique_id = datetime.now().strftime("%Y%m%d")
 
-    experiment_name = 'Test Experiment2'
+    #experiment_name = 'Test Experiment2'
+    experiment_name = f'Test_Experiment_{unique_id}'
+    pipeline_name = f'test_pipeline_{unique_id}'
+    
+    run_name = f'Intrusion_Detection_Run_{unique_id}'
+    pipeline_file = yaml_file
+    
 
     try:
         experiment = client.create_experiment(name=experiment_name, namespace=namespace)
@@ -108,10 +116,10 @@ def run_pipeline(yaml_file):
         print(f"Headers: {e.headers}")
         print(f"Body: {e.body}")
 
-    pipeline_file = yaml_file 
+     
 
     # Define the pipeline name
-    pipeline_name = "test pipeline3"
+    #pipeline_name = "test pipeline3"
 
     # Upload the pipeline
     pipeline = client.upload_pipeline(pipeline_file, pipeline_name=pipeline_name)
@@ -131,14 +139,14 @@ def run_pipeline(yaml_file):
         print(f"Body: {e.body}")
 
 
-
+unique_id = datetime.now().strftime("%Y%m%d")
 
 
 # Compile the pipeline
-#kfp.compiler.Compiler().compile(ml_pipeline, 'intrusion_pipeline.yaml')
-kfp.compiler.Compiler().compile(ml_pipeline, 'intrusion_pipeline.yaml')
-print(f"Compiled the pipeline to: {os.path.abspath('intrusion_pipeline.yaml')}")
+yaml_file = f'intrusion_pipeline_{unique_id}.yaml'
+kfp.compiler.Compiler().compile(ml_pipeline, yaml_file)
+print(f"Compiled the pipeline to: {os.path.abspath(yaml_file)}")
 print("Compiled the pipeline")
-run_pipeline('intrusion_pipeline.yaml')
+run_pipeline(unique_id, yaml_file)
 
 
