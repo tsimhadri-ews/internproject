@@ -34,9 +34,6 @@ jobs:
         working-directory: ./Pipeline/Phishing/Production
         run: pip install -r main_requirements.txt
 
-      - name: Check condition
-        working-directory: ./Pipeline/Phishing/Production
-        run: python check_condition.py
 
       - name: Run read
         working-directory: ./Pipeline/Phishing/Production
