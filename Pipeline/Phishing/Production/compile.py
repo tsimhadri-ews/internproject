@@ -135,7 +135,7 @@ def run_pipeline(unique_id, yaml_file):
         print(f"Body: {e.body}")
 
 
-unique_id = datetime.now().strftime("%Y%m%d")
+unique_id = datetime.now().strftime("%Y%m%d%H%M%S")
 
 
 # Compile the pipeline
