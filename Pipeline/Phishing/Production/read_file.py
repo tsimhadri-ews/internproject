@@ -60,18 +60,14 @@ def read_file() -> None:
             if len(df[c].unique()) == 1:
                 df.drop(columns=[c], inplace=True)
         
-        mapping = {'legitimate':0, 'phishing':1}
-
-        df['status'] = df['status'].map(mapping)
-        
-        corr_matrix = df.corr(numeric_only=True)
-        target_corr = corr_matrix['status']
+        corr_matrix = df.corr()
+        target_corr = corr_matrix['outcome']
         threshold=0.1
         drop_features = target_corr[abs(target_corr)<=threshold].index.tolist()
         df.drop(columns=drop_features, inplace=True)
         
         for i in df.columns:
-            if i != 'status':
+            if i != 'outcome':
                 zscore_normalization(df, i)
                 
         return df
@@ -128,7 +124,7 @@ def read_file() -> None:
                       aws_secret_access_key=credentials['SecretAccessKey'],
                       aws_session_token=credentials['SessionToken'])
     
-    
+    print(s3_client)
     
     folder_path = './tmp/phishing'
     if not os.path.exists(folder_path):
@@ -162,5 +158,3 @@ def read_file() -> None:
     mean_df = pd.DataFrame([preprocess_df])
     meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
     meta_df.to_sql("metadata_table_phishing", engine, if_exists='append', index=False)
-
-#run phishing 2
