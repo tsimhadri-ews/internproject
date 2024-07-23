@@ -54,25 +54,26 @@ def read_file() -> None:
         df[name] = (df[name] - mean) / sd
         preprocess_df[name] = (mean, sd)
     def preprocess(df):
-        df = df.drop(columns=['name', 'md5'])
+        df = df.drop(columns=['url'])
+        
+        for c in df.columns:
+            if len(df[c].unique()) == 1:
+                df.drop(columns=[c], inplace=True)
+        
+        mapping = {'legitimate':0, 'phishing':1}
+
+        df['status'] = df['status'].map(mapping)
+        
+        corr_matrix = df.corr(numeric_only=True)
+        target_corr = corr_matrix['status']
+        threshold=0.1
+        drop_features = target_corr[abs(target_corr)<=threshold].index.tolist()
+        df.drop(columns=drop_features, inplace=True)
+        
         for i in df.columns:
-            if i != 'outcome':
-                df[i] = boxcox(df[i], 0.5)
+            if i != 'status':
                 zscore_normalization(df, i)
-        correlation_matrix = df.corr()
-        cols_to_drop = []
-        for i in df.columns:
-            for j in df.columns:
-                #drop columns with low correlation to target variable
-                if i != j and i != 'outcome' and j != 'outcome' and abs(correlation_matrix[i][j]) > 0.6 and i not in cols_to_drop and j not in cols_to_drop:
-                    cols_to_drop.append(i)
-        cols_to_drop = set(cols_to_drop)
-        for i in df.columns:
-            if i != 'outcome' and i in cols_to_drop:
-                preprocess_df[i] = None
-        df.drop(columns=cols_to_drop, inplace=True)
-        df = df.dropna()
-        df = df.dropna(axis=1)
+                
         return df
 
     db_details = {
