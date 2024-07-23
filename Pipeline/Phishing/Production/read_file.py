@@ -159,4 +159,4 @@ def read_file() -> None:
     meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
     meta_df.to_sql("metadata_table_phishing", engine, if_exists='append', index=False)
 
-#test run 2
+#test run 3
