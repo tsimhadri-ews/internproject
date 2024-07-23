@@ -13,8 +13,6 @@ from datetime import datetime
 
 
 
-
-
 print("running file")
 
 check_condition_op = components.func_to_container_op(func=check_condition, base_image='python:3.7', packages_to_install=['pandas==1.1.5', 'sqlalchemy==1.4.45', 'boto3', 'psycopg2-binary'])
@@ -96,7 +94,7 @@ def run_pipeline(unique_id, yaml_file):
     namespace = "kubeflow-user-example-com"
     client = kfp.Client(host=api_endpoint, cookies=cookie_str, namespace=namespace, existing_token=KUBEFLOW_TOKEN )
 
-    unique_id = datetime.now().strftime("%Y%m%d")
+    #unique_id = datetime.now().strftime("%Y%m%d")
 
     #experiment_name = 'Test Experiment2'
     experiment_name = f'Test_Experiment_{unique_id}'
