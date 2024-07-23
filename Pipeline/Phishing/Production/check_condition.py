@@ -52,7 +52,7 @@ def check_condition() -> bool:
 
     try:
         with engine.connect() as conn:
-            query = text('SELECT count(*) FROM phishing_outcomes;')
+            query = text('select count(*) from phishing_data as phd join phishing_outcomes as pho on pho.uid = phd.uid where phd.outcome!=2;')
             data = pd.read_sql_query(query, conn)
             count = data.iloc[0]['count']
     except Exception as e:
@@ -66,7 +66,25 @@ def check_condition() -> bool:
     except Exception as e:
         print("error")
 
-    if (count % 5 == 0 and count != 0) or meta_count == 0:
+    try:
+        with engine.connect() as conn:
+            query = text('select count(*) from phishing_data as phd join phishing_outcomes as pho on pho.uid = phd.uid where pho.outcome!=phd.outcome and phd.outcome!=2;')
+            data = pd.read_sql_query(query, conn)
+            amount_incorrect = data.iloc[0]['count']
+    except Exception as e:
+        print("error")
+        
+    pct = amount_incorrect/count
+    if count >= 10 or amount_incorrect > 2:
+        try:
+            with engine.connect() as conn:
+                delete_query = text("DELETE FROM phishing_outcomes pho USING phishing_data phd WHERE pho.uid = phd.uid;")
+                result = conn.execute(delete_query)
+                conn.commit()
+        except Exception as e:
+            print("error")
+        
+    if (count >= 10 and count != 0) or meta_count == 0 or amount_incorrect > 2:
         return True
     else:
         return False
