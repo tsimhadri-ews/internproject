@@ -7,6 +7,9 @@ on:
   
   push:
     branches: [ "main" ]
+    paths:
+      - 'Pipeline/Intrusion/Production/read_file.py'
+      - 'Pipeline/Intrusion/Production/train_op.py'
   
 
   # Allows you to run this workflow manually from the Actions tab
