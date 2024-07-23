@@ -123,7 +123,7 @@ def run_pipeline(unique_id, yaml_file):
     pipeline = client.upload_pipeline(pipeline_file, pipeline_name=pipeline_name)
 
     print(f'Pipeline {pipeline_name} uploaded successfully with ID: {pipeline.id}')
-    run_name = 'Intrusion Detection Run9' #change 
+    
     arguments = {} 
 
     try:
