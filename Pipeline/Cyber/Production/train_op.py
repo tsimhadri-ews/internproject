@@ -163,7 +163,7 @@ def train_op() -> None:
     metrics.loc[len(metrics.index)] = [version, 'rfc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
     with open('./tmp/cyber/models/rfc.pkl', 'wb') as f:
         pickle.dump(rfc, f)
-    s3_client.upload_file("tmp/cyber/models/pfc.pkl", bucket_name, f"{folder_path}/rfc/model.pkl")
+    s3_client.upload_file("tmp/cyber/models/rfc.pkl", bucket_name, f"{folder_path}/rfc/model.pkl")
 
 
     #Decision Tree
