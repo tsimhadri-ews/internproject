@@ -131,7 +131,7 @@ def train_op() -> None:
     
     
     # Define dataframe to store model metrics
-    metrics = pd.DataFrame(columns=["Version", "Model", "Accuracy", "Precision", "Recall", "Train_Time", "Test_Time"])
+    metrics = pd.DataFrame(columns=["Version", "Model", "Accuracy", "F1", "Precision", "Recall", "Train_Time", "Test_Time"])
     models_path = './tmp/cyber/models'
     
     
@@ -153,10 +153,14 @@ def train_op() -> None:
 
     accuracy = accuracy_score(y_test, y_pred2)
     
-    precision = precision_score(y_test, y_pred2)
-    recall = recall_score(y_test, y_pred2)
+    precision = precision_score(y_test, y_pred2, average='macro')
+    recall = recall_score(y_test, y_pred2, average='macro')
+    f1 = f1_score(y_test, y_pred2, average="macro")
+
+    print("Precision:", precision)
+    print("Recall:", recall)
     
-    metrics.loc[len(metrics.index)] = [version, 'rfc', accuracy, precision, recall, end_train-start_train, end_test-start_test]
+    metrics.loc[len(metrics.index)] = [version, 'rfc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
     with open('./tmp/cyber/models/rfc.pkl', 'wb') as f:
         pickle.dump(rfc, f)
     s3_client.upload_file("tmp/cyber/models/pfc.pkl", bucket_name, f"{folder_path}/rfc/model.pkl")
