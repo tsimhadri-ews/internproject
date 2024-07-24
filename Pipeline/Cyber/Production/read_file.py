@@ -102,7 +102,7 @@ def read_file() -> None:
             
     try:
         with engine.connect() as conn:
-            query = text('SELECT * FROM phishing_data WHERE outcome != 2;')
+            query = text('SELECT * FROM cyber_data WHERE outcome != 2;')
             chunksize = 10000 
 
             chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
@@ -127,7 +127,7 @@ def read_file() -> None:
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     
     
-    bucket_name="phishingpipeline"
+    bucket_name="multiclasspipeline"
     role_arn = 'arn:aws:iam::533267059960:role/aws-s3-access'
     session_name = 'kubeflow-pipeline-session'
     sts_client = boto3.client('sts')
@@ -141,7 +141,7 @@ def read_file() -> None:
     
     print(s3_client)
     
-    folder_path = './tmp/phishing'
+    folder_path = './tmp/cyber'
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
         print(f"Folder '{folder_path}' created successfully.")
@@ -150,29 +150,29 @@ def read_file() -> None:
         
     try:
         with engine.connect() as conn:
-            query = text('SELECT * FROM metadata_table_phishing ORDER BY version DESC LIMIT 1;')
+            query = text('SELECT * FROM metadata_table_cyber ORDER BY version DESC LIMIT 1;')
             data = pd.read_sql_query(query, conn)
             version = data['version'].iloc[0] + 1
             print(version)
     except Exception as e:
         version = 1
     
-    df.to_csv("./tmp/phishing/phishing_data.csv")
-    s3_client.upload_file("./tmp/phishing/phishing_data.csv", bucket_name, f"version{version}/phishing_dataset.csv")
-    np.save("./tmp/phishing/X_train.npy",X_train)
-    s3_client.upload_file("./tmp/phishing/X_train.npy", bucket_name, f"version{version}/X_train.npy")
-    np.save("./tmp/phishing/y_train.npy",y_train)
-    s3_client.upload_file("./tmp/phishing/y_train.npy", bucket_name, f"version{version}/y_train.npy")
-    np.save("./tmp/phishing/X_test.npy",X_test)
-    s3_client.upload_file("./tmp/phishing/X_test.npy", bucket_name, f"version{version}/X_test.npy")
-    np.save("./tmp/phishing/y_test.npy",y_test)
-    s3_client.upload_file("./tmp/phishing/y_test.npy", bucket_name, f"version{version}/y_test.npy")
+    df.to_csv("./tmp/cyber/cyber_data.csv")
+    s3_client.upload_file("./tmp/cyber/cyber_data.csv", bucket_name, f"version{version}/cyber_dataset.csv")
+    np.save("./tmp/cyber/X_train.npy",X_train)
+    s3_client.upload_file("./tmp/cyber/X_train.npy", bucket_name, f"version{version}/X_train.npy")
+    np.save("./tmp/cyber/y_train.npy",y_train)
+    s3_client.upload_file("./tmp/cyber/y_train.npy", bucket_name, f"version{version}/y_train.npy")
+    np.save("./tmp/cyber/X_test.npy",X_test)
+    s3_client.upload_file("./tmp/cyber/X_test.npy", bucket_name, f"version{version}/X_test.npy")
+    np.save("./tmp/cyber/y_test.npy",y_test)
+    s3_client.upload_file("./tmp/cyber/y_test.npy", bucket_name, f"version{version}/y_test.npy")
         
 
     preprocess_df['version'] = version
     mean_df = pd.DataFrame([preprocess_df])
     meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
-    meta_df.to_sql("metadata_table_phishing", engine, if_exists='append', index=False)
+    meta_df.to_sql("metadata_table_cyber", engine, if_exists='append', index=False)
 
 #make some changes to the file 
 #run pipeline 
