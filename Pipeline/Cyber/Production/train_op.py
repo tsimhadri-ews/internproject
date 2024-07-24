@@ -166,90 +166,90 @@ def train_op() -> None:
     s3_client.upload_file("tmp/cyber/models/rfc.pkl", bucket_name, f"{folder_path}/rfc/model.pkl")
 
 
-    #Decision Tree
+    # Decision Tree
+
+    start_train = time.time()
+    dtc = DecisionTreeClassifier()
+    dtc.fit(X_train, y_train)
+    end_train = time.time()
+
+    start_test = time.time()
+    y_pred3=dtc.predict(X_test)
+    end_test = time.time()
+
+    accuracy = accuracy_score(y_test, y_pred3)
+    f1 = f1_score(y_test, y_pred3, average="macro")
+    precision = precision_score(y_test, y_pred3, average="macro")
+    recall = recall_score(y_test, y_pred3, average="macro")
+
+    metrics.loc[len(metrics.index)] = [version, 'dtc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
+    with open('./tmp/cyber/models/dtc.pkl', 'wb') as f:
+        pickle.dump(rfc, f)
+    s3_client.upload_file("tmp/cyber/models/dtc.pkl", bucket_name, f"{folder_path}/dtc/model.pkl")
+
+
+    #KNN
+
+    start_train = time.time()
+    knn = KNeighborsClassifier(n_neighbors=2)
+    knn.fit(X_train, y_train)
+    end_train = time.time()
+
+    start_test = time.time()
+    y_pred4=knn.predict(X_test)
+    end_test = time.time()
+
+    accuracy = accuracy_score(y_test, y_pred4)
+    f1 = f1_score(y_test, y_pred4, average="macro")
+    precision = precision_score(y_test, y_pred4, average="macro")
+    recall = recall_score(y_test, y_pred4, average="macro")
+
+    metrics.loc[len(metrics.index)] = [version, 'knn', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
+    with open('./tmp/cyber/models/knn.pkl', 'wb') as f:
+        pickle.dump(rfc, f)
+    s3_client.upload_file("tmp/cyber/models/knn.pkl", bucket_name, f"{folder_path}/knn/model.pkl")
+
+    #SGD
+
+    start_train = time.time()
+    sgd = SGDClassifier(max_iter=1000, tol=1e-3)
+    sgd.fit(X_train, y_train)
+    end_train = time.time()
+
+    start_test = time.time()
+    y_pred5=sgd.predict(X_test)
+    end_test = time.time()
+
+    accuracy = accuracy_score(y_test, y_pred5)
+    f1 = f1_score(y_test, y_pred5, average="macro")
+    precision = precision_score(y_test, y_pred5, average="macro")
+    recall = recall_score(y_test, y_pred5, average="macro")
+
+    metrics.loc[len(metrics.index)] = [version, 'sgd', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
+    with open('./tmp/cyber/models/sgd.pkl', 'wb') as f:
+        pickle.dump(rfc, f)
+    s3_client.upload_file("tmp/cyber/models/sgd.pkl", bucket_name, f"{folder_path}/sgd/model.pkl")
+
+    #Logistic Regression
 
     # start_train = time.time()
-    # dtc = DecisionTreeClassifier()
-    # dtc.fit(X_train, y_train)
+    # lrc = LogisticRegression(random_state=0, max_iter=1000)
+    # lrc.fit(X_train, y_train)
     # end_train = time.time()
 
     # start_test = time.time()
-    # y_pred3=dtc.predict(X_test)
+    # y_pred6=lrc.predict(X_test)
     # end_test = time.time()
 
-    # accuracy = accuracy_score(y_test, y_pred3)
-    # f1 = f1_score(y_test, y_pred3)
-    # precision = precision_score(y_test, y_pred3)
-    # recall = recall_score(y_test, y_pred3)
+    # accuracy = accuracy_score(y_test, y_pred6)
+    # f1 = f1_score(y_test, y_pred6)
+    # precision = precision_score(y_test, y_pred6)
+    # recall = recall_score(y_test, y_pred6)
 
-    # metrics.loc[len(metrics.index)] = [version, 'dtc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
-    # with open('./tmp/cyber/models/dtc.pkl', 'wb') as f:
+    # metrics.loc[len(metrics.index)] = [version, 'lrc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
+    # with open('./tmp/cyber/models/lrc.pkl', 'wb') as f:
     #     pickle.dump(rfc, f)
-    # s3_client.upload_file("tmp/cyber/models/dtc.pkl", bucket_name, f"{folder_path}/dtc/model.pkl")
-
-
-    # #KNN
-
-    # start_train = time.time()
-    # knn = KNeighborsClassifier(n_neighbors=2)
-    # knn.fit(X_train, y_train)
-    # end_train = time.time()
-
-    # start_test = time.time()
-    # y_pred4=knn.predict(X_test)
-    # end_test = time.time()
-
-    # accuracy = accuracy_score(y_test, y_pred4)
-    # f1 = f1_score(y_test, y_pred4)
-    # precision = precision_score(y_test, y_pred4)
-    # recall = recall_score(y_test, y_pred4)
-
-    # metrics.loc[len(metrics.index)] = [version, 'knn', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
-    # with open('./tmp/cyber/models/knn.pkl', 'wb') as f:
-    #     pickle.dump(rfc, f)
-    # s3_client.upload_file("tmp/cyber/models/knn.pkl", bucket_name, f"{folder_path}/knn/model.pkl")
-
-    # #SGD
-
-    # start_train = time.time()
-    # sgd = SGDClassifier(max_iter=1000, tol=1e-3)
-    # sgd.fit(X_train, y_train)
-    # end_train = time.time()
-
-    # start_test = time.time()
-    # y_pred5=sgd.predict(X_test)
-    # end_test = time.time()
-
-    # accuracy = accuracy_score(y_test, y_pred5)
-    # f1 = f1_score(y_test, y_pred5)
-    # precision = precision_score(y_test, y_pred5)
-    # recall = recall_score(y_test, y_pred5)
-
-    # metrics.loc[len(metrics.index)] = [version, 'sgd', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
-    # with open('./tmp/cyber/models/sgd.pkl', 'wb') as f:
-    #     pickle.dump(rfc, f)
-    # s3_client.upload_file("tmp/cyber/models/sgd.pkl", bucket_name, f"{folder_path}/sgd/model.pkl")
-
-    # #Logistic Regression
-
-    # # start_train = time.time()
-    # # lrc = LogisticRegression(random_state=0, max_iter=1000)
-    # # lrc.fit(X_train, y_train)
-    # # end_train = time.time()
-
-    # # start_test = time.time()
-    # # y_pred6=lrc.predict(X_test)
-    # # end_test = time.time()
-
-    # # accuracy = accuracy_score(y_test, y_pred6)
-    # # f1 = f1_score(y_test, y_pred6)
-    # # precision = precision_score(y_test, y_pred6)
-    # # recall = recall_score(y_test, y_pred6)
-
-    # # metrics.loc[len(metrics.index)] = [version, 'lrc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
-    # # with open('./tmp/cyber/models/lrc.pkl', 'wb') as f:
-    # #     pickle.dump(rfc, f)
-    # # s3_client.upload_file("tmp/cyber/models/lrc.pkl", bucket_name, f"{folder_path}/lrc/model.pkl")
+    # s3_client.upload_file("tmp/cyber/models/lrc.pkl", bucket_name, f"{folder_path}/lrc/model.pkl")
 
     db_details = {
         'dbname': db,
