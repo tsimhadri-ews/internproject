@@ -13,7 +13,6 @@ def train_op() -> None:
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.linear_model import SGDClassifier
     from sklearn.linear_model import LogisticRegression
-    from sklearn.gaussian_process import GaussianProcessClassifier
 
     from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
     from sqlalchemy import create_engine
@@ -229,16 +228,24 @@ def train_op() -> None:
 
     #Logistic Regression
 
-    start_train = time.time()
-    lrc = LogisticRegression(random_state=0, max_iter=1000)
-    lrc.fit(X_train, y_train)
-    end_train = time.time()
+    # start_train = time.time()
+    # lrc = LogisticRegression(random_state=0, max_iter=1000)
+    # lrc.fit(X_train, y_train)
+    # end_train = time.time()
 
-    start_test = time.time()
-    y_pred8=lrc.predict(X_test)
-    end_test = time.time()
+    # start_test = time.time()
+    # y_pred6=lrc.predict(X_test)
+    # end_test = time.time()
 
+    # accuracy = accuracy_score(y_test, y_pred6)
+    # f1 = f1_score(y_test, y_pred6)
+    # precision = precision_score(y_test, y_pred6)
+    # recall = recall_score(y_test, y_pred6)
 
+    # metrics.loc[len(metrics.index)] = [version, 'lrc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
+    # with open('./tmp/cyber/models/lrc.pkl', 'wb') as f:
+    #     pickle.dump(rfc, f)
+    # s3_client.upload_file("tmp/cyber/models/lrc.pkl", bucket_name, f"{folder_path}/lrc/model.pkl")
 
     db_details = {
         'dbname': db,
@@ -249,7 +256,7 @@ def train_op() -> None:
     }
         
     insert_query = """
-        INSERT INTO phishing_model_metrics (name, version, URI, in_use, accuracy, f1, precision, recall, train_time, test_time)
+        INSERT INTO cyber_model_metrics (name, version, URI, in_use, accuracy, f1, precision, recall, train_time, test_time)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (name, version) DO NOTHING;
     """
@@ -263,7 +270,7 @@ def train_op() -> None:
             cursor.execute(insert_query, (
                 row['Model'], 
                 row['Version'], 
-                f"s3://phishingpipeline/version{version}/{row['Model']}/model.pkl", 
+                f"s3://cyberpipeline/version{version}/{row['Model']}/model.pkl", 
                 False, 
                 row['Accuracy'], 
                 row['F1'], 
