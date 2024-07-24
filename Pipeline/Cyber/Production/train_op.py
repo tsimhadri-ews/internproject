@@ -58,7 +58,7 @@ def train_op() -> None:
 
     (user,pswd,host,port,db) = get_secret()
     
-    bucket_name="phishingpipeline"
+    bucket_name="multiclasspipeline"
     role_arn = 'arn:aws:iam::533267059960:role/aws-s3-access'
     session_name = 'kubeflow-pipeline-session'
     sts_client = boto3.client('sts')
