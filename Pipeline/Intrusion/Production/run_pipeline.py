@@ -10,8 +10,7 @@ def run_pipeline(yaml_file):
     assert response.status_code == 200, f"Failed to access login page: {response.status_code}"
     print("Accessed login page")
 
-    #apparently kubeflow doesnt want you to log onto their webpage 
-    #kubeflow sucks
+    #
     soup = BeautifulSoup(response.text, 'html.parser')
     login_form = soup.find('form')
     login_action = login_form['action']
