@@ -77,7 +77,7 @@ def read_file() -> None:
             else:
                 encode_text(df, col)
 
-        df.drop(columns=["label"], inplace=True)
+        #df.drop(columns=["label"], inplace=True)
 
         corr_matrix = df.corr()
         target_corr = corr_matrix['attack_cat']
