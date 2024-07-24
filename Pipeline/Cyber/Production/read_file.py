@@ -57,10 +57,11 @@ def read_file() -> None:
         preprocess_df[name] = (mean, sd)
 
     def encode_text(df, name):
+        from sklearn.preprocessing import OrdinalEncoder
         enc = OrdinalEncoder()
-        # dummies = pd.get_dummies(df[name])
         data = enc.fit_transform(df[name].values.reshape(-1,1))
-        df[name]=data.flatten()
+        df[name] = data.flatten()
+        preprocess_df[name] = base64.b64encode(pickle.dumps(enc)).decode('utf-8')
 
         
     def preprocess(df):
