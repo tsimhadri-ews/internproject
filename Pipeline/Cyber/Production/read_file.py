@@ -103,7 +103,7 @@ def read_file() -> None:
             
     try:
         with engine.connect() as conn:
-            query = text('SELECT * FROM cyber_data WHERE outcome != NULL;')
+            query = text('SELECT * FROM cyber_data WHERE outcome is not NULL;')
             chunksize = 10000 
 
             chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
