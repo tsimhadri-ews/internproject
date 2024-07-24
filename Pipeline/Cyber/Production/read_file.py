@@ -70,6 +70,7 @@ def read_file() -> None:
                 df.drop(columns=[c], inplace=True)
         
         for col in df.columns:
+            print("not empty")
             t = (df[col].dtype)
             if t == int or t == float:
                 df[col] = boxcox(df[col], 0.5)
@@ -77,7 +78,7 @@ def read_file() -> None:
             else:
                 encode_text(df, col)
 
-        #df.drop(columns=["label"], inplace=True)
+        df.drop(columns=["label"], inplace=True)
 
         corr_matrix = df.corr()
         target_corr = corr_matrix['attack_cat']
