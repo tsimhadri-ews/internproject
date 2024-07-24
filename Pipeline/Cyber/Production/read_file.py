@@ -79,12 +79,6 @@ def read_file() -> None:
                 encode_text(df, col)
 
         df.drop(columns=["label"], inplace=True)
-
-        corr_matrix = df.corr()
-        target_corr = corr_matrix['attack_cat']
-        threshold=0.05
-        drop_features = target_corr[abs(target_corr)<=threshold].index.tolist()
-        df.drop(columns=drop_features, inplace=True)
                 
         return df
 
