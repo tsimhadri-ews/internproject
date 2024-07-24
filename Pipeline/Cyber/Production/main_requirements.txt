@@ -1,0 +1,12 @@
+# main_requirements.txt
+pandas==1.1.5
+sqlalchemy==1.4.45
+boto3
+psycopg2-binary
+scikit-learn==1.0.1
+kfp
+numpy
+minio
+tensorflow
+kubernetes
+kserve

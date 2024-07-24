@@ -66,6 +66,7 @@ def check_condition() -> bool:
     except Exception as e:
         print("error")
 
+    #Threshold for retraining 
     if (count % 5 == 0 and count != 0) or meta_count == 0:
         return True
     else:

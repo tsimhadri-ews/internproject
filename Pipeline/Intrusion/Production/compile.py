@@ -16,13 +16,9 @@ from datetime import datetime
 print("running file")
 
 check_condition_op = components.func_to_container_op(func=check_condition, base_image='python:3.7', packages_to_install=['pandas==1.1.5', 'sqlalchemy==1.4.45', 'boto3', 'psycopg2-binary'])
-
 read_csv_op = components.func_to_container_op(func=read_file, output_component_file='preprocess.yaml', base_image='python:3.7', packages_to_install=['pandas==1.1.5','scikit-learn==1.0.1', 'kfp', 'numpy', 'minio', 'psycopg2-binary', 'sqlalchemy==1.4.45','boto3'])
-
 train_op = components.func_to_container_op(func=train_op, output_component_file='train.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3'])
-
 eval_deploy = components.func_to_container_op(func=model_eval_deploy, output_component_file='eval_deploy.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3','kubernetes','kserve'])
-
 read_data_op = kfp.components.load_component_from_file('preprocess.yaml')
 train_op = kfp.components.load_component_from_file('train.yaml')
 #eval_deploy_op = kfp.components.load_component_from_file('eval_deploy.yaml')
@@ -37,11 +33,11 @@ def ml_pipeline():
         preprocess.execution_options.caching_strategy.max_cache_staleness = "P0D"
         train = train_op().after(preprocess)
         train.execution_options.caching_strategy.max_cache_staleness = "P0D"
-        #eval_deploy = eval_deploy_op().after(train)
-        #eval_deploy.execution_options.caching_strategy.max_cache_staleness = "P0D"
 print("compiling pipeline")
 
 def run_pipeline(unique_id, yaml_file):
+
+    #Get the credentials from Github Secrets 
     KUBEFLOW_HOST = 'http://acc85673e1f094914a006f330bb51cb8-353421018.us-east-1.elb.amazonaws.com'
     KUBEFLOW_USERNAME = os.getenv('KUBEFLOW_USERNAME') 
     KUBEFLOW_PASSWORD = os.getenv('KUBEFLOW_PASSWORD') 
@@ -51,14 +47,14 @@ def run_pipeline(unique_id, yaml_file):
     print("password", KUBEFLOW_PASSWORD)
     print("token", KUBEFLOW_TOKEN)
 
+    # Create a new log in session for Kubeflow 
     session = requests.Session()
     login_url = f"{KUBEFLOW_HOST}" 
     response = session.get(login_url)
     assert response.status_code == 200, f"Failed to access login page: {response.status_code}"
     print("Accessed login page")
 
-    #apparently kubeflow doesnt want you to log onto their webpage 
-    #kubeflow sucks
+    # Scrape the session id from hidden input in Kubeflow 
     soup = BeautifulSoup(response.text, 'html.parser')
     login_form = soup.find('form')
     login_action = login_form['action']
@@ -94,16 +90,13 @@ def run_pipeline(unique_id, yaml_file):
     namespace = "kubeflow-user-example-com"
     client = kfp.Client(host=api_endpoint, cookies=cookie_str, namespace=namespace, existing_token=KUBEFLOW_TOKEN )
 
-    #unique_id = datetime.now().strftime("%Y%m%d")
-
-    #experiment_name = 'Test Experiment2'
     experiment_name = f'Test_Experiment_{unique_id}'
     pipeline_name = f'test_pipeline_{unique_id}'
     
     run_name = f'Intrusion_Detection_Run_{unique_id}'
     pipeline_file = yaml_file
     
-
+    # Create Experiment
     try:
         experiment = client.create_experiment(name=experiment_name, namespace=namespace)
         print(f'Experiment {experiment_name} created with ID: {experiment.id}')
@@ -114,11 +107,6 @@ def run_pipeline(unique_id, yaml_file):
         print(f"Headers: {e.headers}")
         print(f"Body: {e.body}")
 
-     
-
-    # Define the pipeline name
-    #pipeline_name = "test pipeline3"
-
     # Upload the pipeline
     pipeline = client.upload_pipeline(pipeline_file, pipeline_name=pipeline_name)
 
@@ -126,6 +114,7 @@ def run_pipeline(unique_id, yaml_file):
     
     arguments = {} 
 
+    # Run the pipeline 
     try:
         run = client.run_pipeline(experiment.id, run_name, pipeline_file, arguments)
         print(f'Pipeline run {run_name} started with ID: {run.id}')
@@ -136,7 +125,7 @@ def run_pipeline(unique_id, yaml_file):
         print(f"Headers: {e.headers}")
         print(f"Body: {e.body}")
 
-
+# Create a unique name for each experiment/run/pipeline 
 unique_id = datetime.now().strftime("%Y%m%d%H%M%S")
 
 
