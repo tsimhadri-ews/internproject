@@ -1,10 +1,8 @@
 import kfp
 from kfp import dsl
 from kfp import components
-from check_condition import check_condition
 from read_file import read_file
 from train_op import train_op
-from model_eval_deploy import model_eval_deploy
 import os 
 import requests
 from bs4 import BeautifulSoup
@@ -19,8 +17,6 @@ print("running file")
 read_csv_op = components.func_to_container_op(func=read_file, output_component_file='preprocess.yaml', base_image='python:3.7', packages_to_install=['pandas==1.1.5','scikit-learn==1.0.1', 'kfp', 'numpy', 'minio', 'psycopg2-binary', 'sqlalchemy==1.4.45','boto3'])
 
 train_op = components.func_to_container_op(func=train_op, output_component_file='train.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3'])
-
-eval_deploy = components.func_to_container_op(func=model_eval_deploy, output_component_file='eval_deploy.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3','kubernetes','kserve'])
 
 read_data_op = kfp.components.load_component_from_file('preprocess.yaml')
 train_op = kfp.components.load_component_from_file('train.yaml')
@@ -95,7 +91,7 @@ def run_pipeline(unique_id, yaml_file):
     experiment_name = f'Test_Experiment_{unique_id}'
     pipeline_name = f'test_pipeline_{unique_id}'
     
-    run_name = f'Phishing_Detection_Run_{unique_id}'
+    run_name = f'cyber_Detection_Run_{unique_id}'
     pipeline_file = yaml_file
     
 
@@ -136,7 +132,7 @@ unique_id = datetime.now().strftime("%Y%m%d%H%M%S")
 
 
 # Compile the pipeline
-yaml_file = f'phisphing_pipeline_{unique_id}.yaml'
+yaml_file = f'cyber_pipeline_{unique_id}.yaml'
 kfp.compiler.Compiler().compile(ml_pipeline, yaml_file)
 print(f"Compiled the pipeline to: {os.path.abspath(yaml_file)}")
 print("Compiled the pipeline")
