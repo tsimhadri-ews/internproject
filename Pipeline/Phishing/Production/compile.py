@@ -15,32 +15,26 @@ from datetime import datetime
 
 print("running file")
 
-#check_condition_op = components.func_to_container_op(func=check_condition, base_image='python:3.7', packages_to_install=['pandas==1.1.5', 'sqlalchemy==1.4.45', 'boto3', 'psycopg2-binary'])
 
 read_csv_op = components.func_to_container_op(func=read_file, output_component_file='preprocess.yaml', base_image='python:3.7', packages_to_install=['pandas==1.1.5','scikit-learn==1.0.1', 'kfp', 'numpy', 'minio', 'psycopg2-binary', 'sqlalchemy==1.4.45','boto3'])
-
 train_op = components.func_to_container_op(func=train_op, output_component_file='train.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3'])
-
 eval_deploy = components.func_to_container_op(func=model_eval_deploy, output_component_file='eval_deploy.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3','kubernetes','kserve'])
-
 read_data_op = kfp.components.load_component_from_file('preprocess.yaml')
 train_op = kfp.components.load_component_from_file('train.yaml')
-#eval_deploy_op = kfp.components.load_component_from_file('eval_deploy.yaml')
+
 
 def ml_pipeline():
     print("running pipeline")
-    #check_condition = check_condition_op()
-    #check_condition.execution_options.caching_strategy.max_cache_staleness = "P0D"
-    
     preprocess = read_csv_op()
     preprocess.execution_options.caching_strategy.max_cache_staleness = "P0D"
     train = train_op().after(preprocess)
     train.execution_options.caching_strategy.max_cache_staleness = "P0D"
-        #eval_deploy = eval_deploy_op().after(train)
-        #eval_deploy.execution_options.caching_strategy.max_cache_staleness = "P0D"
+        
 print("compiling pipeline")
 
 def run_pipeline(unique_id, yaml_file):
+
+    # Get the credentials from Kubeflow secrets 
     KUBEFLOW_HOST = 'http://acc85673e1f094914a006f330bb51cb8-353421018.us-east-1.elb.amazonaws.com'
     KUBEFLOW_USERNAME = os.getenv('KUBEFLOW_USERNAME') 
     KUBEFLOW_PASSWORD = os.getenv('KUBEFLOW_PASSWORD') 
@@ -50,13 +44,14 @@ def run_pipeline(unique_id, yaml_file):
     print("password", KUBEFLOW_PASSWORD)
     print("token", KUBEFLOW_TOKEN)
 
+    # Create a new session for Kubeflow 
     session = requests.Session()
     login_url = f"{KUBEFLOW_HOST}" 
     response = session.get(login_url)
     assert response.status_code == 200, f"Failed to access login page: {response.status_code}"
     print("Accessed login page")
 
-    
+    # Scrape to get the session id 
     soup = BeautifulSoup(response.text, 'html.parser')
     login_form = soup.find('form')
     login_action = login_form['action']
@@ -99,7 +94,7 @@ def run_pipeline(unique_id, yaml_file):
     run_name = f'Phishing_Detection_Run_{unique_id}'
     pipeline_file = yaml_file
     
-
+    # Create an experiment
     try:
         experiment = client.create_experiment(name=experiment_name, namespace=namespace)
         print(f'Experiment {experiment_name} created with ID: {experiment.id}')
@@ -110,10 +105,6 @@ def run_pipeline(unique_id, yaml_file):
         print(f"Headers: {e.headers}")
         print(f"Body: {e.body}")
 
-     
-
-    # Define the pipeline name
-    #pipeline_name = "test pipeline3"
 
     # Upload the pipeline
     pipeline = client.upload_pipeline(pipeline_file, pipeline_name=pipeline_name)
@@ -122,6 +113,7 @@ def run_pipeline(unique_id, yaml_file):
     
     arguments = {} 
 
+    # Run the pipeline 
     try:
         run = client.run_pipeline(experiment.id, run_name, pipeline_file, arguments)
         print(f'Pipeline run {run_name} started with ID: {run.id}')

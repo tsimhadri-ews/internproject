@@ -7,7 +7,9 @@ def read_file() -> None:
     from sklearn.model_selection import train_test_split
     import boto3
     import json
+    import pickle
     
+    import base64
     import psycopg2
     from psycopg2 import sql
     from sqlalchemy import create_engine, text
@@ -53,6 +55,14 @@ def read_file() -> None:
         sd = df[name].std()
         df[name] = (df[name] - mean) / sd
         preprocess_df[name] = (mean, sd)
+
+    def encode_text(df, name):
+        enc = OrdinalEncoder()
+        # dummies = pd.get_dummies(df[name])
+        data = enc.fit_transform(df[name].values.reshape(-1,1))
+        df[name]=data.flatten()
+
+        
     def preprocess(df):
         df = df.drop(columns=['url'])
         
@@ -62,13 +72,17 @@ def read_file() -> None:
         
         corr_matrix = df.corr()
         target_corr = corr_matrix['outcome']
-        threshold=0.1
+        threshold=0.05
         drop_features = target_corr[abs(target_corr)<=threshold].index.tolist()
         df.drop(columns=drop_features, inplace=True)
         
-        for i in df.columns:
-            if i != 'outcome':
-                zscore_normalization(df, i)
+        for col in df.columns:
+            t = (df[col].dtype)
+            if t == int or t == float:
+                df[col] = boxcox(df[col], 0.5)
+                zscore_normalization(df, col)
+            else:
+                encode_text(df, col)
                 
         return df
 

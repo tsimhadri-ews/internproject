@@ -81,14 +81,11 @@ def model_eval_deploy() -> None:
     except Exception as e:
         print(f"Failed to fetch data: {e}")
     
-    #print(f"df = {df['version'][0]}")
-    
     if(not df.empty):
         version = df['version'][0]
     else:
         version = 1
         
-    #print(f"version = {version}")
     
     try:
         fetch_query = f"SELECT * FROM intrusion_model_metrics where version={version} order by accuracy desc limit 1;"
