@@ -89,10 +89,11 @@ def read_file() -> None:
     try:
         with engine.connect() as conn:
             query = text('SELECT * FROM intrusion_data WHERE outcome != 2;')
-            chunksize = 10000  
+            chunksize = 10000  # Adjust chunksize as per your memory and performance needs
             chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
             i = 1
             for chunk in chunks:
+                # print(f"chunk{i}")
                 i = i + 1
                 features_df = pd.json_normalize(chunk['features'])
                 features_df['outcome'] = chunk['outcome']
@@ -101,6 +102,8 @@ def read_file() -> None:
     except Exception as e:
             print(f"Failed to fetch data: {e}")
 
+    
+    #df = df.drop(columns=['timestamp','uid'])
     df = preprocess(df)
     X = df.drop(columns=['outcome'])
     y = df['outcome']
@@ -137,7 +140,6 @@ def read_file() -> None:
     except Exception as e:
         version = 1
         
-    #Save to s3 Bucket 
     df.to_csv("./tmp/intrusion/intrusion_data.csv")
     s3_client.upload_file("./tmp/intrusion/intrusion_data.csv", bucket_name, f"version{version}/intrusion_dataset.csv")
     np.save("./tmp/intrusion/X_train.npy",X_train)

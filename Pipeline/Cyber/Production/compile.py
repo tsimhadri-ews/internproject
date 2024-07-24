@@ -15,7 +15,6 @@ from datetime import datetime
 
 print("running file")
 
-#check_condition_op = components.func_to_container_op(func=check_condition, base_image='python:3.7', packages_to_install=['pandas==1.1.5', 'sqlalchemy==1.4.45', 'boto3', 'psycopg2-binary'])
 
 read_csv_op = components.func_to_container_op(func=read_file, output_component_file='preprocess.yaml', base_image='python:3.7', packages_to_install=['pandas==1.1.5','scikit-learn==1.0.1', 'kfp', 'numpy', 'minio', 'psycopg2-binary', 'sqlalchemy==1.4.45','boto3'])
 
