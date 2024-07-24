@@ -72,11 +72,12 @@ def read_file() -> None:
         for col in df.columns:
             print("not empty")
             t = (df[col].dtype)
-            if t == int or t == float:
-                df[col] = boxcox(df[col], 0.5)
-                zscore_normalization(df, col)
-            else:
-                encode_text(df, col)
+            if col != "outcome":
+                if t == int or t == float:
+                    df[col] = boxcox(df[col], 0.5)
+                    zscore_normalization(df, col)
+                else:
+                    encode_text(df, col)
 
         df.drop(columns=["label"], inplace=True)
                 
