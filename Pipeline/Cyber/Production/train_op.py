@@ -8,12 +8,13 @@ def train_op() -> None:
     import tensorflow as tf
     import boto3
     from minio import Minio
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.naive_bayes import GaussianNB
-    from sklearn.ensemble import GradientBoostingClassifier
-    from sklearn.svm import SVC
-    from sklearn.tree import DecisionTreeClassifier
     from sklearn.ensemble import RandomForestClassifier
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.linear_model import SGDClassifier
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.gaussian_process import GaussianProcessClassifier
+
     from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
     from sqlalchemy import create_engine
     from sqlalchemy import create_engine, Table, Column, Float, Integer, String, MetaData, ARRAY
@@ -93,7 +94,7 @@ def train_op() -> None:
         
     # Query to fetch data from the table
     try:
-        fetch_query = "SELECT * FROM metadata_table_phishing ORDER BY date DESC LIMIT 1;"
+        fetch_query = "SELECT * FROM metadata_table_cyber ORDER BY date DESC LIMIT 1;"
         df = pd.read_sql(fetch_query, conn)
     except Exception as e:
         print(f"Failed to fetch data: {e}")
@@ -132,7 +133,7 @@ def train_op() -> None:
     
     # Define dataframe to store model metrics
     metrics = pd.DataFrame(columns=["Version", "Model", "Accuracy", "F1", "Precision", "Recall", "Train_Time", "Test_Time"])
-    models_path = './tmp/phishing/models'
+    models_path = './tmp/cyber/models'
     
     
     if not os.path.exists(models_path):
@@ -141,144 +142,103 @@ def train_op() -> None:
     else:
         print(f"Folder '{models_path}' already exists.")
         
-    
-    #Logistic Regression
-    start_train = time.time()
-    lrc = LogisticRegression(random_state=0, max_iter=1000)
-    lrc.fit(X_train, y_train)
-    end_train = time.time()
-    start_test = time.time()
-    ypredlr = lrc.predict(X_test)
-    end_test = time.time()
-    accuracy = accuracy_score(y_test, ypredlr)
-    f1 = f1_score(y_test, ypredlr)
-    precision = precision_score(y_test, ypredlr)
-    recall = recall_score(y_test, ypredlr)
-    metrics.loc[len(metrics.index)] = [version,'lrc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
-    with open('./tmp/phishing/models/lrc.pkl', 'wb') as f:
-        pickle.dump(lrc, f)
-    s3_client.upload_file("tmp/phishing/models/lrc.pkl", bucket_name, f"{folder_path}/lrc/model.pkl")
-    
-    
     #Random Forest Classifier
     start_train = time.time()
     rfc = RandomForestClassifier()
     rfc.fit(X_train, y_train)
     end_train = time.time()
+
     start_test = time.time()
     y_pred2=rfc.predict(X_test)
     end_test = time.time()
+
     accuracy = accuracy_score(y_test, y_pred2)
     f1 = f1_score(y_test, y_pred2)
     precision = precision_score(y_test, y_pred2)
     recall = recall_score(y_test, y_pred2)
+    
     metrics.loc[len(metrics.index)] = [version, 'rfc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
-    with open('./tmp/phishing/models/rfc.pkl', 'wb') as f:
+    with open('./tmp/cyber/models/rfc.pkl', 'wb') as f:
         pickle.dump(rfc, f)
-    s3_client.upload_file("tmp/phishing/models/rfc.pkl", bucket_name, f"{folder_path}/rfc/model.pkl")
-    
-    
+    s3_client.upload_file("tmp/cyber/models/pfc.pkl", bucket_name, f"{folder_path}/rfc/model.pkl")
+
+
     #Decision Tree
+
     start_train = time.time()
     dtc = DecisionTreeClassifier()
     dtc.fit(X_train, y_train)
     end_train = time.time()
+
     start_test = time.time()
     y_pred3=dtc.predict(X_test)
     end_test = time.time()
-    accuracy = accuracy_score(y_test,y_pred3)
+
+    accuracy = accuracy_score(y_test, y_pred3)
     f1 = f1_score(y_test, y_pred3)
     precision = precision_score(y_test, y_pred3)
     recall = recall_score(y_test, y_pred3)
+
     metrics.loc[len(metrics.index)] = [version, 'dtc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
-    with open('./tmp/phishing/models/dtc.pkl', 'wb') as f:
-        pickle.dump(dtc, f)
-    s3_client.upload_file("tmp/phishing/models/dtc.pkl", bucket_name, f"{folder_path}/dtc/model.pkl")
-    
-    
-    
-    #Support Vector Machine
+    with open('./tmp/cyber/models/dtc.pkl', 'wb') as f:
+        pickle.dump(rfc, f)
+    s3_client.upload_file("tmp/cyber/models/dtc.pkl", bucket_name, f"{folder_path}/dtc/model.pkl")
+
+
+    #KNN
+
     start_train = time.time()
-    svc = SVC()
-    svc.fit(X_train, y_train)
+    knn = KNeighborsClassifier(n_neighbors=2)
+    knn.fit(X_train, y_train)
     end_train = time.time()
+
     start_test = time.time()
-    y_pred4=svc.predict(X_test)
+    y_pred4=knn.predict(X_test)
     end_test = time.time()
-    accuracy = accuracy_score(y_test,y_pred4)
-    f1 = f1_score(y_test,y_pred4)
+
+    accuracy = accuracy_score(y_test, y_pred4)
+    f1 = f1_score(y_test, y_pred4)
     precision = precision_score(y_test, y_pred4)
     recall = recall_score(y_test, y_pred4)
-    metrics.loc[len(metrics.index)] = [version, 'svc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
-    with open('./tmp/phishing/models/svc.pkl', 'wb') as f:
-        pickle.dump(svc, f)
-    s3_client.upload_file("tmp/phishing/models/svc.pkl", bucket_name, f"{folder_path}/svc/model.pkl")
-    
-    
-    
-    #Gradient Boost
+
+    metrics.loc[len(metrics.index)] = [version, 'knn', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
+    with open('./tmp/cyber/models/knn.pkl', 'wb') as f:
+        pickle.dump(rfc, f)
+    s3_client.upload_file("tmp/cyber/models/knn.pkl", bucket_name, f"{folder_path}/knn/model.pkl")
+
+    #SGD
+
     start_train = time.time()
-    gbc = GradientBoostingClassifier()
-    gbc.fit(X_train, y_train)
+    sgd = SGDClassifier(max_iter=1000, tol=1e-3)
+    sgd.fit(X_train, y_train)
     end_train = time.time()
+
     start_test = time.time()
-    y_pred5=gbc.predict(X_test)
+    y_pred5=sgd.predict(X_test)
     end_test = time.time()
-    accuracy = accuracy_score(y_test,y_pred5)
+
+    accuracy = accuracy_score(y_test, y_pred5)
     f1 = f1_score(y_test, y_pred5)
     precision = precision_score(y_test, y_pred5)
-    recall = (recall_score(y_test, y_pred5))
-    metrics.loc[len(metrics.index)] = [version, 'gbc', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
-    with open('./tmp/phishing/models/gbc.pkl', 'wb') as f:
-        pickle.dump(gbc, f)
-    s3_client.upload_file("tmp/phishing/models/gbc.pkl", bucket_name, f"{folder_path}/gbc/model.pkl")
-    
-    
-    #Gaussian Naive Bayes
+    recall = recall_score(y_test, y_pred5)
+
+    metrics.loc[len(metrics.index)] = [version, 'sgd', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]
+    with open('./tmp/cyber/models/sgd.pkl', 'wb') as f:
+        pickle.dump(rfc, f)
+    s3_client.upload_file("tmp/cyber/models/sgd.pkl", bucket_name, f"{folder_path}/sgd/model.pkl")
+
+    #Logistic Regression
+
     start_train = time.time()
-    gnb = GaussianNB()
-    gnb.fit(X_train, y_train)
+    lrc = LogisticRegression(random_state=0, max_iter=1000)
+    lrc.fit(X_train, y_train)
     end_train = time.time()
+
     start_test = time.time()
-    y_pred6=gnb.predict(X_test)
+    y_pred8=lrc.predict(X_test)
     end_test = time.time()
-    accuracy = accuracy_score(y_test,y_pred6)
-    f1 = f1_score(y_test, y_pred6)
-    precision = precision_score(y_test,y_pred6)
-    recall = recall_score(y_test, y_pred6)
-    metrics.loc[len(metrics.index)] = [version, 'gnb', accuracy, f1, precision, recall, end_train-start_train, end_test-start_test]  
-    with open('./tmp/phishing/models/gnb.pkl', 'wb') as f:
-        pickle.dump(gnb, f)      
-    s3_client.upload_file("tmp/phishing/models/gnb.pkl", bucket_name, f"{folder_path}/gnb/model.pkl")
-    
-    
-    
-    #Artificial Neural Network
-    input_shape = [X_train.shape[1]]
-    start_train = time.time()
-    model = tf.keras.Sequential([
-        tf.keras.layers.Dense(units=64, activation='relu', input_shape=input_shape),
-        tf.keras.layers.Dense(units=64, activation='relu'),
-        tf.keras.layers.Dense(units=1, activation='sigmoid')
-    ])
-    model.build()
-    model.compile(optimizer='adam', loss='binary_crossentropy',  metrics=['accuracy'])
-    history = model.fit(X_train, y_train, validation_data=(X_test,y_test), batch_size=256, epochs=25)
-    end_train=time.time()
-    start_test = time.time()
-    y_pred7 = model.predict(X_test)
-    y_pred7 = (y_pred7 > 0.5).astype(np.int32)
-    end_test = time.time()
-    print(y_pred7)
-    accuracy = accuracy_score(y_test,y_pred7)
-    f1 = f1_score(y_test, y_pred7)
-    precision = precision_score(y_test,y_pred7)
-    recall = recall_score(y_test, y_pred7)
-    # accuracy = history.history['accuracy'][11]
-    metrics.loc[len(metrics.index)] = [version, 'ann', accuracy, f1, precision, recall, end_test-start_test, 0]
-    with open('./tmp/phishing/models/ann.pkl', 'wb') as f:
-        pickle.dump(model, f)
-    s3_client.upload_file("tmp/phishing/models/ann.pkl", bucket_name, f"{folder_path}/ann/model.pkl")
+
+
 
     db_details = {
         'dbname': db,

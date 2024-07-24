@@ -64,18 +64,10 @@ def read_file() -> None:
         preprocess_df[name] = base64.b64encode(pickle.dumps(enc)).decode('utf-8')
 
         
-    def preprocess(df):
-        df = df.drop(columns=['url'])
-        
+    def preprocess(df):        
         for c in df.columns:
             if len(df[c].unique()) == 1:
                 df.drop(columns=[c], inplace=True)
-        
-        corr_matrix = df.corr()
-        target_corr = corr_matrix['outcome']
-        threshold=0.05
-        drop_features = target_corr[abs(target_corr)<=threshold].index.tolist()
-        df.drop(columns=drop_features, inplace=True)
         
         for col in df.columns:
             t = (df[col].dtype)
@@ -84,6 +76,14 @@ def read_file() -> None:
                 zscore_normalization(df, col)
             else:
                 encode_text(df, col)
+
+        df.drop(columns=["label"], inplace=True)
+
+        corr_matrix = df.corr()
+        target_corr = corr_matrix['attack_cat']
+        threshold=0.05
+        drop_features = target_corr[abs(target_corr)<=threshold].index.tolist()
+        df.drop(columns=drop_features, inplace=True)
                 
         return df
 
@@ -121,8 +121,8 @@ def read_file() -> None:
 
     df = preprocess(df)
     
-    X = df.drop(columns=['outcome'])
-    y = df['outcome']
+    X = df.drop(columns=["attack_cat"])
+    y = df["attack_cat"]
         
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     
