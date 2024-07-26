@@ -68,18 +68,27 @@ def read_file() -> None:
         for c in df.columns:
             if len(df[c].unique()) == 1:
                 df.drop(columns=[c], inplace=True)
+                preprocess_df[c] = None
         
         for col in df.columns:
-            print("not empty")
-            t = (df[col].dtype)
-            if col != "outcome":
-                if t == int or t == float:
+            if col != 'outcome':
+                t = (df[col].dtype)
+                if t == 'int64' or t == 'float64':
                     df[col] = boxcox(df[col], 0.5)
                     zscore_normalization(df, col)
                 else:
                     encode_text(df, col)
 
         df.drop(columns=["label"], inplace=True)
+        preprocess_df['label'] = None
+
+        corr_matrix = df.corr()
+        target_corr = corr_matrix['outcome']
+        threshold=0.05
+        drop_features = target_corr[abs(target_corr)<=threshold].index.tolist()
+        for i in drop_features:
+            preprocess_df[i] = None
+        df.drop(columns=drop_features, inplace=True)
                 
         return df
 
@@ -170,3 +179,5 @@ def read_file() -> None:
     meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
     meta_df.to_sql("metadata_table_cyber", engine, if_exists='append', index=False)
 
+#make some changes to the file 
+#run pipeline 
