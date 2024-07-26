@@ -105,10 +105,6 @@ def run_pipeline(unique_id, yaml_file):
         print(f"Headers: {e.headers}")
         print(f"Body: {e.body}")
 
-     
-
-    # Define the pipeline name
-    #pipeline_name = "test pipeline3"
 
     # Upload the pipeline
     pipeline = client.upload_pipeline(pipeline_file, pipeline_name=pipeline_name)
