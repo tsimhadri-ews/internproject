@@ -177,6 +177,7 @@ def train_op() -> None:
         pickle.dump(rfc, f)
     s3_client.upload_file("tmp/phishing/models/rfc.pkl", bucket_name, f"{folder_path}/rfc/model.pkl")
     
+   
     
     #Decision Tree
     start_train = time.time()
