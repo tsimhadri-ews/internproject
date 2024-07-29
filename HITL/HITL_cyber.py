@@ -13,7 +13,7 @@ template = '''
 <!doctype html>
 <html lang="en">
   <head>
-    <title>HITL Malware</title>
+    <title>HITL Cyber</title>
   </head>
   <body>
     <h1>Prediction Result</h1>
@@ -84,7 +84,7 @@ def fetch_and_process_data():
     except Exception as e:
         return None, f"Failed to establish connection: {e}"
 
-    fetch_query = "SELECT md.* FROM malware_data as md join malware_outcomes mo on mo.uid=md.uid WHERE md.outcome = 2 limit 1;"
+    fetch_query = "SELECT md.*,mo.outcome as prediction FROM cyber_data as md join cyber_outcomes mo on mo.uid=md.uid WHERE md.outcome is null limit 1;"
     try:
         df = pd.read_sql(fetch_query, conn)
         df = df.head()
@@ -95,21 +95,21 @@ def fetch_and_process_data():
     message1 = ""
     try:
         insert_query = """
-        INSERT INTO malware_outcomes (uid, outcome)
+        INSERT INTO cyber_outcomes (uid, outcome)
         VALUES (%s, %s)
         """
         update_query = """
-        UPDATE malware_data
+        UPDATE cyber_data
         SET outcome = %s
         WHERE uid = %s
         """
         
         for index, row in df.iterrows():
             message1 = f"row {row}.<br>"
-            message1 += f"UID {row['uid']} already exists in malware_outcomes with outcome .<br>"
+            message1 += f"UID {row['uid']} already exists in cyber_outcomes with outcome {row['prediction']}.<br>"
             print(message1)
             
-            cursor.execute(update_query, (row['outcome'], row['uid']))
+            #cursor.execute(update_query, (row['outcome'], row['uid']))
         
         conn.commit()
     except Exception as e:
@@ -143,7 +143,7 @@ def handle_post_action(action):
     
 
     try:
-        select_query = "SELECT mo.uid,mo.outcome FROM malware_data as md join malware_outcomes mo on mo.uid=md.uid WHERE md.outcome = 2 limit 1;"
+        select_query = "SELECT mo.uid,mo.outcome FROM cyber_data as md join cyber_outcomes mo on mo.uid=md.uid WHERE md.outcome is null limit 1;"
         cursor.execute(select_query)
         rows = cursor.fetchall()
         print(rows)
@@ -156,7 +156,7 @@ def handle_post_action(action):
                 yes_count += 1 
                 print(yes_count)
                 print("yes pressed")
-                update_query = "UPDATE malware_data SET outcome = %s WHERE uid = %s"
+                update_query = "UPDATE cyber_data SET outcome = %s WHERE uid = %s"
                 cursor.execute(update_query, (outcome, uid))
                 message2 = " Yes Data Updated Pressed"
 
@@ -164,7 +164,7 @@ def handle_post_action(action):
                 no_count += 1
                 print(no_count)
                 print("no pressed")
-                update_query = "UPDATE malware_data SET outcome = %s WHERE uid = %s"
+                update_query = "UPDATE cyber_data SET outcome = %s WHERE uid = %s"
                 cursor.execute(update_query, (1 - outcome, uid))  # Assuming binary outcome, flipping 0 to 1 and 1 to 0
 
                 message2 = " No Data Updated Pressed"
