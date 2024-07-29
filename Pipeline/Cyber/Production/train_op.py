@@ -210,7 +210,6 @@ def train_op() -> None:
     s3_client.upload_file("tmp/cyber/models/knn.pkl", bucket_name, f"{folder_path}/knn/model.pkl")
 
     #SGD
-
     start_train = time.time()
     sgd = SGDClassifier(max_iter=1000, tol=1e-3)
     sgd.fit(X_train, y_train)
