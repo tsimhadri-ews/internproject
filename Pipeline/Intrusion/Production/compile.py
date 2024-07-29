@@ -21,7 +21,7 @@ train_op = components.func_to_container_op(func=train_op, output_component_file=
 eval_deploy = components.func_to_container_op(func=model_eval_deploy, output_component_file='eval_deploy.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3','kubernetes','kserve'])
 read_data_op = kfp.components.load_component_from_file('preprocess.yaml')
 train_op = kfp.components.load_component_from_file('train.yaml')
-#eval_deploy_op = kfp.components.load_component_from_file('eval_deploy.yaml')
+eval_deploy_op = kfp.components.load_component_from_file('eval_deploy.yaml')
 
 def ml_pipeline():
     print("running pipeline")
@@ -33,6 +33,8 @@ def ml_pipeline():
         preprocess.execution_options.caching_strategy.max_cache_staleness = "P0D"
         train = train_op().after(preprocess)
         train.execution_options.caching_strategy.max_cache_staleness = "P0D"
+        eval_deploy = eval_deploy_op().after(train)
+        eval_deploy.execution_options.caching_strategy.max_cache_staleness = "P0D"
 print("compiling pipeline")
 
 def run_pipeline(unique_id, yaml_file):
