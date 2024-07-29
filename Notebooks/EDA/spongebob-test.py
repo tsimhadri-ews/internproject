@@ -3,6 +3,7 @@ import os
 
 # Initialize the bounding box coordinates
 bbox = []
+drawing = False
 
 def draw_rectangle(event, x, y, flags, param):
     global bbox, drawing
@@ -35,6 +36,8 @@ while True:
 
 cv2.destroyAllWindows()
 
+label_path = os.path.splitext(image_path)[0] + ".txt"
+
 if len(bbox) == 2:
     x1, y1 = bbox[0]
     x2, y2 = bbox[1]
@@ -48,12 +51,12 @@ if len(bbox) == 2:
     
     # Format coordinates
     label_data = f"0 {x_center} {y_center} {width} {height}"
-    
-    # Write to text file
-    label_path = os.path.splitext(image_path)[0] + ".txt"
-    with open(os.path.expanduser(label_path), "w") as file:
-        file.write(label_data)
-    
-    print(f"Bounding box coordinates saved to {label_path}: {label_data}")
 else:
-    print("Bounding box not drawn correctly.")
+    # No bounding box was drawn
+    label_data = "1 0 0 0 0"
+
+# Write to text file
+with open(os.path.expanduser(label_path), "w") as file:
+    file.write(label_data)
+    
+print(f"Bounding box coordinates saved to {label_path}: {label_data}")
