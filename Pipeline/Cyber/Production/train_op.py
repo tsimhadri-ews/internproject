@@ -273,7 +273,7 @@ def train_op() -> None:
             cursor.execute(insert_query, (
                 row['Model'], 
                 row['Version'], 
-                f"s3://cyberpipeline/version{version}/{row['Model']}/model.pkl", 
+                f"s3://multiclasspipeline/version{version}/{row['Model']}/model.pkl", 
                 False, 
                 row['Accuracy'], 
                 row['F1'], 
