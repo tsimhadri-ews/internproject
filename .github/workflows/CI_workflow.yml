@@ -1,14 +1,16 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: CI_Intrusion
 
 # Controls when the workflow will run
 on:
   
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    paths:
+      - 'Pipeline/Intrusion/Production/read_file.py'
+      - 'Pipeline/Intrusion/Production/train_op.py'
+  
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -33,27 +35,36 @@ jobs:
       - name: Install dependencies
         working-directory: ./Pipeline/Intrusion/Production
         run: pip install -r main_requirements.txt
-      
+
+      - name: Check condition
+        working-directory: ./Pipeline/Intrusion/Production
+        run: python check_condition.py
+
       - name: Run read
-        working-directory: ./Pipeline/Intrusion/Experiment/templates
+        working-directory: ./Pipeline/Intrusion/Production
         run: python read_file.py
 
-      # Run the second Python script
+      
       - name: Run train
-        working-directory: ./Pipeline/Intrusion/Experiment/templates
+        working-directory: ./Pipeline/Intrusion/Production 
         run: python train_op.py
 
       - name: Install dependencies
         working-directory: ./Pipeline/Intrusion/Production
         run: pip install -r compile_requirements.txt
 
-
       - name: Run compile
         working-directory: ./Pipeline/Intrusion/Production
-        run: python compile.py
+        env:
+          KUBEFLOW_USERNAME: ${{ secrets.USER }}
+          KUBEFLOW_PASSWORD: ${{ secrets.PASSWORD }}
+          KUBEFLOW_TOKEN: ${{ secrets.TOKEN }}
+        run: python compile.py 
+      
 
-      - name: Upload output.yaml
+      - name: Upload output.yaml I can remove this 
         uses: actions/upload-artifact@v2
         with:
           name: generate output
           path: /home/runner/work/internproject/internproject/Pipeline/Intrusion/Production/intrusion_pipeline.yaml
+      

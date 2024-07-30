@@ -159,6 +159,7 @@ def train_op() -> None:
     s3_client.upload_file("tmp/intrusion/models/lrc.pkl", bucket_name, f"{folder_path}/lrc/model.pkl")
     
     
+    
     #Random Forest Classifier
     start_train = time.time()
     rfc = RandomForestClassifier()

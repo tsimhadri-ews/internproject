@@ -142,12 +142,6 @@ def train_op() -> None:
         
     #Insert Models
     
-    #Sample code to save metrics and upload model to bucket
-        # metrics.loc[len(metrics.index)] = [version, 'ann', accuracy, f1, precision, recall, end_test-start_test, 0]
-        # with open('./tmp/intrusion/models/ann.pkl', 'wb') as f:
-        #     pickle.dump(model, f)
-        # s3_client.upload_file("tmp/intrusion/models/ann.pkl", bucket_name, f"{folder_path}/ann/model.pkl")
-
     db_details = {
         'dbname': db,
         'user': user,
