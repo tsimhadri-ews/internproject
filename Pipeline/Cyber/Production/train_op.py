@@ -187,7 +187,6 @@ def train_op() -> None:
         pickle.dump(rfc, f)
     s3_client.upload_file("tmp/cyber/models/dtc.pkl", bucket_name, f"{folder_path}/dtc/model.pkl")
 
-
     #KNN
 
     start_train = time.time()
