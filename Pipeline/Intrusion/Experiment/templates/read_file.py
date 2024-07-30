@@ -1,4 +1,4 @@
-def read_file() -> None:
+def read_file(is_experiment: bool = False) -> None:
     import os
     import pandas as pd
     import numpy as np
@@ -70,7 +70,33 @@ def read_file() -> None:
         
     #Data preprocessing
     def preprocess(df):
-        #Insert Preprocess Function
+
+        for col in df.columns:
+            t = (df[col].dtype)
+            if col != 'outcome':
+                if (t == int or t == float):
+                    zscore_normalization(df, col)
+               
+                else:
+                    df[col] = df[col].astype(str)
+                    encode_text(df, col)
+                            
+        for col in df.columns:
+            if len(df[col].unique()) == 1:
+                df.drop(col, inplace=True,axis=1)
+                preprocess_df[col] = None
+
+
+        correlation = df.corrwith(df["outcome"])
+      
+        
+        row = 0 
+        for num in correlation:
+            if num >= -0.05 and num <= 0.05:
+                preprocess_df[df.columns[row]] = None
+                df.drop(df.columns[row], axis=1, inplace=True)
+                row -= 1
+            row += 1
         return df
     
     db_details = {
@@ -89,18 +115,25 @@ def read_file() -> None:
     try:
         with engine.connect() as conn:
             query = text('SELECT * FROM intrusion_data WHERE outcome != 2;')
-            chunksize = 10000  
+            chunksize = 10000  # Adjust chunksize as per your memory and performance needs
             chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
             i = 1
             for chunk in chunks:
+                # print(f"chunk{i}")
                 i = i + 1
                 features_df = pd.json_normalize(chunk['features'])
                 features_df['outcome'] = chunk['outcome']
                 df = pd.concat([df, features_df], ignore_index=True)
-   
+
+
+                
+                
+                
     except Exception as e:
             print(f"Failed to fetch data: {e}")
 
+    
+    #df = df.drop(columns=['timestamp','uid'])
     df = preprocess(df)
     X = df.drop(columns=['outcome'])
     y = df['outcome']
@@ -129,28 +162,39 @@ def read_file() -> None:
         print(f"Folder '{folder_path}' already exists.")
         
 
-    try:
-        with engine.connect() as conn:
-            query = text('SELECT * FROM metadata_table_intrusion ORDER BY version DESC LIMIT 1;')
-            data = pd.read_sql_query(query, conn)
-            version = data['version'].iloc[0] + 1
-    except Exception as e:
-        version = 1
+    
         
-    #Save to s3 Bucket 
     df.to_csv("./tmp/intrusion/intrusion_data.csv")
-    s3_client.upload_file("./tmp/intrusion/intrusion_data.csv", bucket_name, f"version{version}/intrusion_dataset.csv")
     np.save("./tmp/intrusion/X_train.npy",X_train)
-    s3_client.upload_file("./tmp/intrusion/X_train.npy", bucket_name, f"version{version}/X_train.npy")
-    np.save("./tmp/intrusion/y_train.npy",y_train)
-    s3_client.upload_file("./tmp/intrusion/y_train.npy", bucket_name, f"version{version}/y_train.npy")
+    np.save("./tmp/intrusion/y_train.npy",y_train)  
     np.save("./tmp/intrusion/X_test.npy",X_test)
-    s3_client.upload_file("./tmp/intrusion/X_test.npy", bucket_name, f"version{version}/X_test.npy")
     np.save("./tmp/intrusion/y_test.npy",y_test)
-    s3_client.upload_file("./tmp/intrusion/y_test.npy", bucket_name, f"version{version}/y_test.npy")
+    
+      
+    if(not is_experiment):
         
+        try:
+            with engine.connect() as conn:
+                query = text('SELECT * FROM metadata_table_intrusion ORDER BY version DESC LIMIT 1;')
+                data = pd.read_sql_query(query, conn)
+                version = data['version'].iloc[0] + 1
+        except Exception as e:
+            version = 1
         
-    preprocess_df['version'] = version
-    mean_df = pd.DataFrame([preprocess_df])
-    meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
-    meta_df.to_sql("metadata_table_intrusion", engine, if_exists='append', index=False)
+        s3_client.upload_file("./tmp/intrusion/intrusion_data.csv", bucket_name, f"version{version}/intrusion_dataset.csv")
+        s3_client.upload_file("./tmp/intrusion/X_train.npy", bucket_name, f"version{version}/X_train.npy")
+        s3_client.upload_file("./tmp/intrusion/y_train.npy", bucket_name, f"version{version}/y_train.npy")
+        s3_client.upload_file("./tmp/intrusion/X_test.npy", bucket_name, f"version{version}/X_test.npy")
+        s3_client.upload_file("./tmp/intrusion/y_test.npy", bucket_name, f"version{version}/y_test.npy")
+        
+        preprocess_df['version'] = version
+        mean_df = pd.DataFrame([preprocess_df])
+        meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
+        meta_df.to_sql("metadata_table_intrusion", engine, if_exists='append', index=False)
+    
+    else:
+        s3_client.upload_file("./tmp/intrusion/intrusion_data.csv", bucket_name, f"experiment/intrusion_dataset.csv")
+        s3_client.upload_file("./tmp/intrusion/X_train.npy", bucket_name, f"experiment/X_train.npy")
+        s3_client.upload_file("./tmp/intrusion/y_train.npy", bucket_name, f"experiment/y_train.npy")
+        s3_client.upload_file("./tmp/intrusion/X_test.npy", bucket_name, f"experiment/X_test.npy")
+        s3_client.upload_file("./tmp/intrusion/y_test.npy", bucket_name, f"experiment/y_test.npy")

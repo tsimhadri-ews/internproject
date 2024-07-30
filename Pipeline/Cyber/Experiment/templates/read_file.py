@@ -1,4 +1,4 @@
-def read_file() -> None:
+def read_file(is_experiment: bool = False) -> None:
     import os
     import pandas as pd
     import numpy as np
@@ -48,31 +48,50 @@ def read_file() -> None:
 
 
     (user,pswd,host,port,db) = get_secret()
-    
-    # Dictionary to save mean, sd, and, encoder
     preprocess_df = {'version':1}
     
-    #Perform normalization
     def zscore_normalization(df, name):
         mean = df[name].mean()
         sd = df[name].std()
         df[name] = (df[name] - mean) / sd
         preprocess_df[name] = (mean, sd)
-        
-    #Encode text 
+
     def encode_text(df, name):
         from sklearn.preprocessing import OrdinalEncoder
         enc = OrdinalEncoder()
         data = enc.fit_transform(df[name].values.reshape(-1,1))
         df[name] = data.flatten()
         preprocess_df[name] = base64.b64encode(pickle.dumps(enc)).decode('utf-8')
-        # pickle.loads(a.encode('latin1'))
+
         
-    #Data preprocessing
-    def preprocess(df):
-        #Insert Preprocess Function
+    def preprocess(df):        
+        for c in df.columns:
+            if len(df[c].unique()) == 1:
+                df.drop(columns=[c], inplace=True)
+                preprocess_df[c] = None
+        
+        for col in df.columns:
+            if col != 'outcome':
+                t = (df[col].dtype)
+                if t == 'int64' or t == 'float64':
+                    df[col] = boxcox(df[col], 0.5)
+                    zscore_normalization(df, col)
+                else:
+                    encode_text(df, col)
+
+        df.drop(columns=["label"], inplace=True)
+        preprocess_df['label'] = None
+
+        corr_matrix = df.corr()
+        target_corr = corr_matrix['outcome']
+        threshold=0.05
+        drop_features = target_corr[abs(target_corr)<=threshold].index.tolist()
+        for i in drop_features:
+            preprocess_df[i] = None
+        df.drop(columns=drop_features, inplace=True)
+                
         return df
-    
+
     db_details = {
         'dbname': db,
         'user': user,
@@ -80,37 +99,40 @@ def read_file() -> None:
         'host': host,
         'port': port
     }
-    
-    # Connect to PostgreSQL
-    engine = create_engine(f'postgresql+psycopg2://{db_details["user"]}:{db_details["password"]}@{db_details["host"]}:{db_details["port"]}/{db_details["dbname"]}', connect_args={'connect_timeout': 60})
-    
-    df = pd.DataFrame()
-    
-    try:
-        with engine.connect() as conn:
-            query = text('SELECT * FROM intrusion_data WHERE outcome != 2;')
-            chunksize = 10000  # Adjust chunksize as per your memory and performance needs
-            chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
-            i = 1
-            for chunk in chunks:
-                # print(f"chunk{i}")
-                i = i + 1
-                features_df = pd.json_normalize(chunk['features'])
-                features_df['outcome'] = chunk['outcome']
-                df = pd.concat([df, features_df], ignore_index=True)
-   
-    except Exception as e:
-            print(f"Failed to fetch data: {e}")
 
     
-    #df = df.drop(columns=['timestamp','uid'])
+    engine = create_engine(f'postgresql+psycopg2://{db_details["user"]}:{db_details["password"]}@{db_details["host"]}:{db_details["port"]}/{db_details["dbname"]}')
+
+    df = pd.DataFrame()
+            
+    try:
+        with engine.connect() as conn:
+            query = text('SELECT * FROM cyber_data WHERE outcome is not NULL;')
+            chunksize = 10000 
+
+            chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
+
+            features_list = []
+
+            for chunk in chunks:
+                features_df = pd.json_normalize(chunk['features'])
+                features_df['outcome'] = chunk['outcome']
+                
+                df = pd.concat([df, features_df], ignore_index=True)
+
+    except Exception as e:
+        print(f"Failed to fetch data: {e}")
+
+
     df = preprocess(df)
-    X = df.drop(columns=['outcome'])
-    y = df['outcome']
     
+    X = df.drop(columns=["outcome"])
+    y = df["outcome"]
+        
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     
-    bucket_name="intrusionpipeline"
+    
+    bucket_name="multiclasspipeline"
     role_arn = 'arn:aws:iam::533267059960:role/aws-s3-access'
     session_name = 'kubeflow-pipeline-session'
     sts_client = boto3.client('sts')
@@ -122,37 +144,49 @@ def read_file() -> None:
                       aws_secret_access_key=credentials['SecretAccessKey'],
                       aws_session_token=credentials['SessionToken'])
     
+    print(s3_client)
     
-    
-    folder_path = './tmp/intrusion'
+    folder_path = './tmp/cyber'
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
         print(f"Folder '{folder_path}' created successfully.")
     else:
         print(f"Folder '{folder_path}' already exists.")
         
+    
+    
+    df.to_csv("./tmp/cyber/cyber_data.csv")
+    np.save("./tmp/cyber/X_train.npy",X_train)
+    np.save("./tmp/cyber/y_train.npy",y_train)
+    np.save("./tmp/cyber/X_test.npy",X_test)
+    np.save("./tmp/cyber/y_test.npy",y_test)   
+        
+    if(not is_experiment):
+        try:
+            with engine.connect() as conn:
+                query = text('SELECT * FROM metadata_table_cyber ORDER BY version DESC LIMIT 1;')
+                data = pd.read_sql_query(query, conn)
+                version = data['version'].iloc[0] + 1
+                print(version)
+        except Exception as e:
+            version = 1
+        
+        s3_client.upload_file("./tmp/cyber/cyber_data.csv", bucket_name, f"version{version}/cyber_dataset.csv")
+        s3_client.upload_file("./tmp/cyber/X_train.npy", bucket_name, f"version{version}/X_train.npy")
+        s3_client.upload_file("./tmp/cyber/y_train.npy", bucket_name, f"version{version}/y_train.npy")
+        s3_client.upload_file("./tmp/cyber/X_test.npy", bucket_name, f"version{version}/X_test.npy")
+        s3_client.upload_file("./tmp/cyber/y_test.npy", bucket_name, f"version{version}/y_test.npy")
 
-    try:
-        with engine.connect() as conn:
-            query = text('SELECT * FROM metadata_table_intrusion ORDER BY version DESC LIMIT 1;')
-            data = pd.read_sql_query(query, conn)
-            version = data['version'].iloc[0] + 1
-    except Exception as e:
-        version = 1
-        
-    df.to_csv("./tmp/intrusion/intrusion_data.csv")
-    s3_client.upload_file("./tmp/intrusion/intrusion_data.csv", bucket_name, f"version{version}/intrusion_dataset.csv")
-    np.save("./tmp/intrusion/X_train.npy",X_train)
-    s3_client.upload_file("./tmp/intrusion/X_train.npy", bucket_name, f"version{version}/X_train.npy")
-    np.save("./tmp/intrusion/y_train.npy",y_train)
-    s3_client.upload_file("./tmp/intrusion/y_train.npy", bucket_name, f"version{version}/y_train.npy")
-    np.save("./tmp/intrusion/X_test.npy",X_test)
-    s3_client.upload_file("./tmp/intrusion/X_test.npy", bucket_name, f"version{version}/X_test.npy")
-    np.save("./tmp/intrusion/y_test.npy",y_test)
-    s3_client.upload_file("./tmp/intrusion/y_test.npy", bucket_name, f"version{version}/y_test.npy")
-        
-        
-    preprocess_df['version'] = version
-    mean_df = pd.DataFrame([preprocess_df])
-    meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
-    meta_df.to_sql("metadata_table_intrusion", engine, if_exists='append', index=False)
+        preprocess_df['version'] = version
+        mean_df = pd.DataFrame([preprocess_df])
+        meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
+        meta_df.to_sql("metadata_table_cyber", engine, if_exists='append', index=False)
+    else:
+        s3_client.upload_file("./tmp/cyber/cyber_data.csv", bucket_name, f"experiment/cyber_dataset.csv")
+        s3_client.upload_file("./tmp/cyber/X_train.npy", bucket_name, f"experiment/X_train.npy")
+        s3_client.upload_file("./tmp/cyber/y_train.npy", bucket_name, f"experiment/y_train.npy")
+        s3_client.upload_file("./tmp/cyber/X_test.npy", bucket_name, f"experiment/X_test.npy")
+        s3_client.upload_file("./tmp/cyber/y_test.npy", bucket_name, f"experiment/y_test.npy")
+
+#make some changes to the file 
+#run pipeline 
