@@ -78,7 +78,7 @@ try:
         data = message.value
         print(f"Received message: {data}")
         uid = data.pop('uid')
-        data.pop('outcome')
+        data.pop('status')
         try:
             insert_query = """
             INSERT INTO phishing_data (uid, features)
