@@ -65,6 +65,20 @@ import uuid
 from io import BytesIO
 from zipfile import ZipFile
 ```
+These can be installed from our requirements.txt file.
+We recommend creating a python virtual environment.
+```
+python -m venv [pipeline]
+source pipeline/bin/activate
+```
+And then run the install. 
+```
+pip install -r requirements.txt
+```
+
+
+
+
 ## Contributing
 We welcome contributions to this project! To contribute, please follow these guidelines:
 
