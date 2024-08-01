@@ -1,4 +1,4 @@
-def read_file() -> None:
+def read_file(is_experiment: bool = False) -> None:
     import os
     import pandas as pd
     import numpy as np
@@ -153,31 +153,40 @@ def read_file() -> None:
     else:
         print(f"Folder '{folder_path}' already exists.")
         
-    try:
-        with engine.connect() as conn:
-            query = text('SELECT * FROM metadata_table_cyber ORDER BY version DESC LIMIT 1;')
-            data = pd.read_sql_query(query, conn)
-            version = data['version'].iloc[0] + 1
-            print(version)
-    except Exception as e:
-        version = 1
+    
     
     df.to_csv("./tmp/cyber/cyber_data.csv")
-    s3_client.upload_file("./tmp/cyber/cyber_data.csv", bucket_name, f"version{version}/cyber_dataset.csv")
     np.save("./tmp/cyber/X_train.npy",X_train)
-    s3_client.upload_file("./tmp/cyber/X_train.npy", bucket_name, f"version{version}/X_train.npy")
     np.save("./tmp/cyber/y_train.npy",y_train)
-    s3_client.upload_file("./tmp/cyber/y_train.npy", bucket_name, f"version{version}/y_train.npy")
     np.save("./tmp/cyber/X_test.npy",X_test)
-    s3_client.upload_file("./tmp/cyber/X_test.npy", bucket_name, f"version{version}/X_test.npy")
-    np.save("./tmp/cyber/y_test.npy",y_test)
-    s3_client.upload_file("./tmp/cyber/y_test.npy", bucket_name, f"version{version}/y_test.npy")
+    np.save("./tmp/cyber/y_test.npy",y_test)   
         
+    if(not is_experiment):
+        try:
+            with engine.connect() as conn:
+                query = text('SELECT * FROM metadata_table_cyber ORDER BY version DESC LIMIT 1;')
+                data = pd.read_sql_query(query, conn)
+                version = data['version'].iloc[0] + 1
+                print(version)
+        except Exception as e:
+            version = 1
+        
+        s3_client.upload_file("./tmp/cyber/cyber_data.csv", bucket_name, f"version{version}/cyber_dataset.csv")
+        s3_client.upload_file("./tmp/cyber/X_train.npy", bucket_name, f"version{version}/X_train.npy")
+        s3_client.upload_file("./tmp/cyber/y_train.npy", bucket_name, f"version{version}/y_train.npy")
+        s3_client.upload_file("./tmp/cyber/X_test.npy", bucket_name, f"version{version}/X_test.npy")
+        s3_client.upload_file("./tmp/cyber/y_test.npy", bucket_name, f"version{version}/y_test.npy")
 
-    preprocess_df['version'] = version
-    mean_df = pd.DataFrame([preprocess_df])
-    meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
-    meta_df.to_sql("metadata_table_cyber", engine, if_exists='append', index=False)
+        preprocess_df['version'] = version
+        mean_df = pd.DataFrame([preprocess_df])
+        meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), len(X.columns), json.dumps(df.dtypes.astype(str).to_dict()),mean_df.iloc[0].to_json()]], columns = ['version', 'date', 'features', 'types','factor'])
+        meta_df.to_sql("metadata_table_cyber", engine, if_exists='append', index=False)
+    else:
+        s3_client.upload_file("./tmp/cyber/cyber_data.csv", bucket_name, f"experiment/cyber_dataset.csv")
+        s3_client.upload_file("./tmp/cyber/X_train.npy", bucket_name, f"experiment/X_train.npy")
+        s3_client.upload_file("./tmp/cyber/y_train.npy", bucket_name, f"experiment/y_train.npy")
+        s3_client.upload_file("./tmp/cyber/X_test.npy", bucket_name, f"experiment/X_test.npy")
+        s3_client.upload_file("./tmp/cyber/y_test.npy", bucket_name, f"experiment/y_test.npy")
 
 #make some changes to the file 
 #run pipeline 
