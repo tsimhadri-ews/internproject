@@ -1,0 +1,7 @@
+requests==2.31.0
+pandas==2.0.3
+kafka-python==2.0.2
+psycopg2-binary==2.9.6
+SQLAlchemy==2.0.20
+scipy==1.11.3
+numpy==1.25.2
