@@ -69,7 +69,7 @@ df['normalized_feature'] = boxcox(df['feature_column'] + 1)[0]
 !git push
 ```
 ### Database Integration:
-####Store and retrieve data using PostgreSQL.
+#### Store and retrieve data using PostgreSQL.
 ```
 from sqlalchemy import create_engine, text
 
