@@ -1,10 +1,8 @@
 import kfp
 from kfp import dsl
 from kfp import components
-from check_condition import check_condition
 from read_file import read_file
 from train_op import train_op
-from model_eval_deploy import model_eval_deploy
 import os 
 import requests
 from bs4 import BeautifulSoup
