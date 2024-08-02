@@ -31,11 +31,12 @@ To set up this project, follow these steps:
 To use this project, follow these steps:
 
 1. Ensure all necessary installations are completed.
-2. Run the python files for the desired uses in CreateDatabases to populate tables in PostgreSQL.
-3. Run the jupyter notebooks for the desired use cases in the experiment and folder to create pipeline components and trigger a run.
-4. Run the HITL python file for the desired use cases to create the HITL for prediction confirmation and triggering.
-5. Edit the python files and the jupter notebooks in the Inference folder for the desired use cases to update the unseen data sources and run for inferencing.
-6. Monitor the pipeline for automated retraining and CI/CD processes.
+2. Create an S3 bucket in accordance to the naming convention for the specific use case.
+3. Run the python files for the desired uses in CreateDatabases to populate tables in PostgreSQL.
+4. Run the jupyter notebooks for the desired use cases in the pipelines folder to create pipeline components and trigger a run.
+5. Run the HITL python file for the desired use cases to create the HITL for prediction confirmation and triggering.
+6. Edit the python files and the jupter notebooks in the Inference folder for the desired use cases to update the unseen data sources and run for inferencing.
+7. Monitor the pipeline for automated retraining and CI/CD processes.
 
 ### Example Usage
 1. **Data Ingestion**:
