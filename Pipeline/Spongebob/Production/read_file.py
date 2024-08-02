@@ -1,10 +1,10 @@
-def train_op():
+def read_file():
     import boto3
     from botocore.exceptions import ClientError
     import json 
     from io import StringIO
     import paramiko 
-    import os 
+    import os
     
     secret_name = "key"
     region_name = "us-east-1"
@@ -63,9 +63,9 @@ def train_op():
     remote_directory = '/home/ubuntu/objectdetection'
     yolo = 'yolo_code'
 
-    script_to_run = 'yolo_model.py'
+    script_test = 'download.py'
 
-    command = f'cd {remote_directory} && source {venv} && cd {yolo} && python {script_to_run}'
+    command = f'cd {remote_directory} && source {venv} && cd {yolo} && python {script_test}'
     stdin, stdout, stderr = ssh_client.exec_command(command)
     #print(stdout.read().decode())
     #print(stderr.read().decode())
