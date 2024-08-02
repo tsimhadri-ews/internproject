@@ -45,7 +45,7 @@ def read_file():
                       aws_session_token=credentials['SessionToken'])
 
     # SSH connection details
-    hostname = 'ec2-54-226-169-192.compute-1.amazonaws.com'
+    hostname = 'ec2-54-167-24-42.compute-1.amazonaws.com' #change each session 
     port = 22
     username = 'ubuntu'
 
