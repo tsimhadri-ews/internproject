@@ -38,16 +38,74 @@ To use this project, follow these steps:
 6. Edit the python files and the jupter notebooks in the Inference folder for the desired use cases to update the unseen data sources and run for inferencing.
 7. Monitor the pipeline for automated retraining and CI/CD processes.
 
-### Example Usage
-1. **Data Ingestion**:
-   - Use Kafka for streaming data into the pipeline.
-   - Example: `KafkaProducer` to send data to the pipeline.
-2. **Data Processing**:
-   - Utilize pandas and numpy for data manipulation and preprocessing, and push to git to trigger git actions.
-   - Example: Apply `boxcox` transformation to normalize data.s
-4. **Database Integration**:
-   - Store and retrieve data using PostgreSQL.
-   - Example: Use `sqlalchemy` to interact with the PostgreSQL database.
+## Example Usage
+
+### Data Ingestion:
+
+#### Use Kafka for streaming data into the pipeline.
+
+```python
+from kafka import KafkaProducer
+import json
+
+producer = KafkaProducer(bootstrap_servers='localhost:9092', value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+data = {"example_key": "example_value"}
+producer.send('your_topic', value=data)
+```
+
+### Data Processing:
+#### Utilize pandas and numpy for data manipulation and preprocessing, and push to Git to trigger Git actions.
+```
+import pandas as pd
+import numpy as np
+from scipy.special import boxcox
+
+df = pd.read_csv('data.csv')
+df['normalized_feature'] = boxcox(df['feature_column'] + 1)[0]
+
+# Commit and push changes to trigger CI/CD
+!git add data.csv
+!git commit -m "Processed data"
+!git push
+```
+### Database Integration:
+####Store and retrieve data using PostgreSQL.
+```
+from sqlalchemy import create_engine, text
+
+engine = create_engine('postgresql+psycopg2://username:password@localhost:5432/database_name')
+with engine.connect() as connection:
+    result = connection.execute(text("SELECT * FROM table_name"))
+    for row in result:
+        print(row)
+```
+### Pipeline Execution:
+#### Push changes to the Jupyter notebook in the pipelines folder to create pipeline components and trigger a run.
+```
+# Edit the notebook and save changes to trigger pipeline execution
+!git add pipelines/your_notebook.ipynb
+!git commit -m "Updated pipeline notebook"
+!git push
+```
+### Human-in-the-Loop (HITL) for Prediction Confirmation:
+#### Run the HITL python file for the desired use cases to create the HITL for prediction confirmation and triggering.
+```
+# Example HITL script
+import json
+
+def hitl_confirmation(prediction):
+    # Logic for human confirmation
+    confirmed = input(f"Confirm prediction {prediction}: (yes/no) ")
+    return confirmed.lower() == 'yes'
+
+with open('predictions.json', 'r') as f:
+    predictions = json.load(f)
+
+confirmed_predictions = [pred for pred in predictions if hitl_confirmation(pred)]
+
+with open('confirmed_predictions.json', 'w') as f:
+    json.dump(confirmed_predictions, f)
+```
 
 ## Features
 - Binary classification of various cybersecurity datasets.
