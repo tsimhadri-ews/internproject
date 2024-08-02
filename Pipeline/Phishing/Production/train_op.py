@@ -1,4 +1,4 @@
-def train_op() -> None:
+def train_op(is_experiment: bool = False) -> None:
     import pickle
     import pandas as pd
     import numpy as np
@@ -71,64 +71,86 @@ def train_op() -> None:
                       aws_secret_access_key=credentials['SecretAccessKey'],
                       aws_session_token=credentials['SessionToken'])
     
-    
-    db_details = {
-        'dbname': db,
-        'user': user,
-        'password': pswd,
-        'host': host,
-        'port': port
-    }
-        
-        
-    
-    # Connect to PostgreSQL
-    try:
-        conn = psycopg2.connect(**db_details)
-        cursor = conn.cursor()
-        print("Connected to PostgreSQL successfully.")
-    except Exception as e:
-        print(f"Failed to connect to PostgreSQL: {e}")
-        exit()
-        
-    # Query to fetch data from the table
-    try:
-        fetch_query = "SELECT * FROM metadata_table_phishing ORDER BY date DESC LIMIT 1;"
-        df = pd.read_sql(fetch_query, conn)
-    except Exception as e:
-        print(f"Failed to fetch data: {e}")
-    
-    if(not df.empty):
-        version = df['version'][0]
-    else:
-        version = 1
-        
-    folder_path = f"version{version}"
-    
-    cursor.close()
-    conn.close()
-    
-    print(f"version{version}/X_train.npy")
-    
-    response = s3_client.get_object(Bucket=bucket_name, Key=f"version{version}/X_train.npy")
-    data = response['Body'].read()
-    X_train = np.load(BytesIO(data))
-    X_train = pd.DataFrame(X_train)
-    
-    response = s3_client.get_object(Bucket=bucket_name, Key=f"version{version}/y_train.npy")
-    data = response['Body'].read()
-    y_train = np.load(BytesIO(data))
+    if(not is_experiment):
+        db_details = {
+            'dbname': db,
+            'user': user,
+            'password': pswd,
+            'host': host,
+            'port': port
+        }
 
+
+
+        # Connect to PostgreSQL
+        try:
+            conn = psycopg2.connect(**db_details)
+            cursor = conn.cursor()
+            print("Connected to PostgreSQL successfully.")
+        except Exception as e:
+            print(f"Failed to connect to PostgreSQL: {e}")
+            exit()
+
+        # Query to fetch data from the table
+        try:
+            fetch_query = "SELECT * FROM metadata_table_phishing ORDER BY date DESC LIMIT 1;"
+            df = pd.read_sql(fetch_query, conn)
+        except Exception as e:
+            print(f"Failed to fetch data: {e}")
+
+        if(not df.empty):
+            version = df['version'][0]
+        else:
+            version = 1
+
+        folder_path = f"version{version}"
+
+        cursor.close()
+        conn.close()
+
+        print(f"version{version}/X_train.npy")
+
+        response = s3_client.get_object(Bucket=bucket_name, Key=f"version{version}/X_train.npy")
+        data = response['Body'].read()
+        X_train = np.load(BytesIO(data))
+        X_train = pd.DataFrame(X_train)
+
+        response = s3_client.get_object(Bucket=bucket_name, Key=f"version{version}/y_train.npy")
+        data = response['Body'].read()
+        y_train = np.load(BytesIO(data))
+
+
+        response = s3_client.get_object(Bucket=bucket_name, Key=f"version{version}/X_test.npy")
+        data = response['Body'].read()
+        X_test = np.load(BytesIO(data))
+        X_test = pd.DataFrame(X_test)
+
+        response = s3_client.get_object(Bucket=bucket_name, Key=f"version{version}/y_test.npy")
+        data = response['Body'].read()
+        y_test = np.load(BytesIO(data))
     
-    response = s3_client.get_object(Bucket=bucket_name, Key=f"version{version}/X_test.npy")
-    data = response['Body'].read()
-    X_test = np.load(BytesIO(data))
-    X_test = pd.DataFrame(X_test)
+    else:
+        version = 0
+        folder_path = 'experiment'
     
-    response = s3_client.get_object(Bucket=bucket_name, Key=f"version{version}/y_test.npy")
-    data = response['Body'].read()
-    y_test = np.load(BytesIO(data))
-    
+        response = s3_client.get_object(Bucket=bucket_name, Key=f"experiment/X_train.npy")
+        data = response['Body'].read()
+        X_train = np.load(BytesIO(data))
+        X_train = pd.DataFrame(X_train)
+
+        response = s3_client.get_object(Bucket=bucket_name, Key=f"experiment/y_train.npy")
+        data = response['Body'].read()
+        y_train = np.load(BytesIO(data))
+
+
+        response = s3_client.get_object(Bucket=bucket_name, Key=f"experiment/X_test.npy")
+        data = response['Body'].read()
+        X_test = np.load(BytesIO(data))
+        X_test = pd.DataFrame(X_test)
+
+        response = s3_client.get_object(Bucket=bucket_name, Key=f"experiment/y_test.npy")
+        data = response['Body'].read()
+        y_test = np.load(BytesIO(data))
     
     # Define dataframe to store model metrics
     metrics = pd.DataFrame(columns=["Version", "Model", "Accuracy", "F1", "Precision", "Recall", "Train_Time", "Test_Time"])
@@ -177,7 +199,6 @@ def train_op() -> None:
         pickle.dump(rfc, f)
     s3_client.upload_file("tmp/phishing/models/rfc.pkl", bucket_name, f"{folder_path}/rfc/model.pkl")
     
-   
     
     #Decision Tree
     start_train = time.time()
@@ -281,44 +302,48 @@ def train_op() -> None:
         pickle.dump(model, f)
     s3_client.upload_file("tmp/phishing/models/ann.pkl", bucket_name, f"{folder_path}/ann/model.pkl")
 
-    db_details = {
-        'dbname': db,
-        'user': user,
-        'password': pswd,
-        'host': host,
-        'port': port
-    }
-        
-    insert_query = """
-        INSERT INTO phishing_model_metrics (name, version, URI, in_use, accuracy, f1, precision, recall, train_time, test_time)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (name, version) DO NOTHING;
-    """
-    try:
-        conn = psycopg2.connect(**db_details)
-        cursor = conn.cursor()
-        print("Connected to PostgreSQL successfully.")
+    if(not is_experiment):
+        db_details = {
+            'dbname': db,
+            'user': user,
+            'password': pswd,
+            'host': host,
+            'port': port
+        }
 
-        # Iterate through DataFrame rows and insert into the table
-        for index, row in metrics.iterrows():
-            cursor.execute(insert_query, (
-                row['Model'], 
-                row['Version'], 
-                f"s3://phishingpipeline/version{version}/{row['Model']}/model.pkl", 
-                False, 
-                row['Accuracy'], 
-                row['F1'], 
-                row['Precision'], 
-                row['Recall'], 
-                row['Train_Time'], 
-                row['Test_Time']
-            ))
+        insert_query = """
+            INSERT INTO phishing_model_metrics (name, version, URI, in_use, accuracy, f1, precision, recall, train_time, test_time)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (name, version) DO NOTHING;
+        """
+        try:
+            conn = psycopg2.connect(**db_details)
+            cursor = conn.cursor()
+            print("Connected to PostgreSQL successfully.")
+
+            # Iterate through DataFrame rows and insert into the table
+            for index, row in metrics.iterrows():
+                cursor.execute(insert_query, (
+                    row['Model'], 
+                    row['Version'], 
+                    f"s3://phishingpipeline/version{version}/{row['Model']}/model.pkl", 
+                    False, 
+                    row['Accuracy'], 
+                    row['F1'], 
+                    row['Precision'], 
+                    row['Recall'], 
+                    row['Train_Time'], 
+                    row['Test_Time']
+                ))
+
+            conn.commit()
+            print("Data inserted successfully.")
+
+            cursor.close()
+            conn.close()
+            print("PostgreSQL connection closed.")
+        except Exception as e:
+            print(f"Failed to connect to PostgreSQL or insert data: {e}")
+    else:
+        print(metrics)
     
-        conn.commit()
-        print("Data inserted successfully.")
-
-        cursor.close()
-        conn.close()
-        print("PostgreSQL connection closed.")
-    except Exception as e:
-        print(f"Failed to connect to PostgreSQL or insert data: {e}")
