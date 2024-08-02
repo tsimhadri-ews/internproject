@@ -55,7 +55,7 @@ producer.send('your_topic', value=data)
 
 ### Data Processing:
 #### Utilize pandas and numpy for data manipulation and preprocessing, and push to Git to trigger Git actions.
-```
+```python
 import pandas as pd
 import numpy as np
 from scipy.special import boxcox
@@ -70,7 +70,7 @@ df['normalized_feature'] = boxcox(df['feature_column'] + 1)[0]
 ```
 ### Database Integration:
 #### Store and retrieve data using PostgreSQL.
-```
+```python
 from sqlalchemy import create_engine, text
 
 engine = create_engine('postgresql+psycopg2://username:password@localhost:5432/database_name')
@@ -81,7 +81,7 @@ with engine.connect() as connection:
 ```
 ### Pipeline Execution:
 #### Push changes to the Jupyter notebook in the pipelines folder to create pipeline components and trigger a run.
-```
+```python
 # Edit the notebook and save changes to trigger pipeline execution
 !git add pipelines/your_notebook.ipynb
 !git commit -m "Updated pipeline notebook"
@@ -89,7 +89,7 @@ with engine.connect() as connection:
 ```
 ### Human-in-the-Loop (HITL) for Prediction Confirmation:
 #### Run the HITL python file for the desired use cases to create the HITL for prediction confirmation and triggering.
-```
+```python
 # Example HITL script
 import json
 
