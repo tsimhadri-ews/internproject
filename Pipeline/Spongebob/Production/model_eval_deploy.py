@@ -89,7 +89,8 @@ def model_eval_deploy() -> None:
     except Exception as e:
         print(f"a Failed to fetch data: {e}") 
     
-    print(accuracy)
+    print(int(model['version'][0]))
+    print(old_model)
     
     if old_version == -1 or old_version != model['version'][0]:
         print("hello")
