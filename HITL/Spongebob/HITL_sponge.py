@@ -126,7 +126,11 @@ try:
                         update_query = "UPDATE spongebob_outcomes SET confirmed = %s WHERE uid = %s"
                         cursor.execute(update_query, (outcome, uid))
                         conn.commit()
-                        upload_to_s3(image_path, text_name, bucket_name, upload_path)
+                        text_path = os.path.join(image_directory, text_name)
+                        if os.path.exists(text_path):
+                            upload_to_s3(image_path, text_path, bucket_name, upload_path)
+                        else:
+                            upload_to_s3(image_path, None, bucket_name, upload_path)
                         
                         
 
