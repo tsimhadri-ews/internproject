@@ -5,6 +5,12 @@ def read_file():
     from io import StringIO
     import paramiko 
     import os
+    import pandas as pd
+    
+    import datetime
+    from sqlalchemy import create_engine
+    from sqlalchemy import create_engine, Table, Column, Float, Integer, String, MetaData, ARRAY
+    from sqlalchemy import select, desc, insert, text
     
     secret_name = "key"
     region_name = "us-east-1"
@@ -45,7 +51,7 @@ def read_file():
                       aws_session_token=credentials['SessionToken'])
 
     # SSH connection details
-    hostname = 'ec2-54-167-24-42.compute-1.amazonaws.com' #change each session 
+    hostname = 'ec2-54-167-24-42.compute-1.amazonaws.com'
     port = 22
     username = 'ubuntu'
 
@@ -88,5 +94,72 @@ def read_file():
     print(stdout.read().decode())
     print(stderr.read().decode())
 
+    def get_secret():
+
+        secret_name = "DBCreds"
+        region_name = "us-east-1"
+
+        # Create a Secrets Manager client
+        session = boto3.session.Session()
+        client = session.client(
+            service_name='secretsmanager',
+            region_name=region_name
+        )
+
+        try:
+            get_secret_value_response = client.get_secret_value(
+                SecretId=secret_name
+            )
+        except ClientError as e:
+            raise e
+
+        secret = get_secret_value_response['SecretString']
+    
+        # Parse the secret string to get the credentials
+        secret_dict = json.loads(secret)
+        username = secret_dict['username']
+        password = secret_dict['password']
+        host = secret_dict['host']
+        port = secret_dict['port']
+        dbname = secret_dict['dbname']
+
+        return username, password, host, port, dbname
+
+
+    (user,pswd,host,port,db) = get_secret()
+    
+    db_details = {
+        'dbname': db,
+        'user': user,
+        'password': pswd,
+        'host': host,
+        'port': port
+    }
+
+    
+    engine = create_engine(f'postgresql+psycopg2://{db_details["user"]}:{db_details["password"]}@{db_details["host"]}:{db_details["port"]}/{db_details["dbname"]}')
+    try:
+        with engine.connect() as conn:
+            query = text('SELECT * FROM metadata_table_spongebob ORDER BY version DESC LIMIT 1;')
+            data = pd.read_sql_query(query, conn)
+            version = data['version'].iloc[0] + 1
+            print(version)
+    except Exception as e:
+        version = 1
+    
+    typea = {
+        "image": "bytea",
+        "class": "float",
+        "x": "float",
+        "y": "float",
+        "width": "float",
+        "height": "float"
+    }
+
+    typea_json = json.dumps(typea)
+    
+    meta_df = pd.DataFrame(data = [[version, datetime.datetime.now(), 6, typea_json]], columns = ['version', 'date', 'features', 'types'])
+    meta_df.to_sql("metadata_table_spongebob", engine, if_exists='append', index=False)
+    
     # Close the connection
     ssh_client.close()

@@ -3,6 +3,8 @@ from kfp import dsl
 from kfp import components
 from read_file import read_file
 from train_op import train_op
+from check_condition import check_condition
+from model_eval_deploy import model_eval_deploy
 import os 
 import requests
 from bs4 import BeautifulSoup
@@ -12,18 +14,27 @@ from datetime import datetime
 
 
 
-read_csv_op = components.func_to_container_op(func=read_file, output_component_file='preprocess.yaml', base_image='python:3.7', packages_to_install=['pandas==1.1.5','scikit-learn==1.0.1', 'kfp', 'numpy', 'minio', 'psycopg2-binary', 'sqlalchemy==1.4.45','boto3', 'paramiko'])
-train_op = components.func_to_container_op(func=train_op, output_component_file='train.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3', 'paramiko'])
+check_condition_op = components.func_to_container_op(func=check_condition, base_image='python:3.7', packages_to_install=['pandas==1.1.5', 'sqlalchemy==1.4.45', 'boto3', 'psycopg2-binary','paramiko'])
+read_csv_op = components.func_to_container_op(func=read_file, output_component_file='preprocess.yaml', base_image='python:3.7', packages_to_install=['pandas==1.1.5','scikit-learn==1.0.1', 'kfp', 'numpy', 'minio', 'psycopg2-binary', 'sqlalchemy==1.4.45','boto3','paramiko'])
+train_op = components.func_to_container_op(func=train_op, output_component_file='train.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3','paramiko'])
+eval_deploy = components.func_to_container_op(func=model_eval_deploy, output_component_file='eval_deploy.yaml', base_image='python:3.7', packages_to_install=['pandas', 'scikit-learn==1.0.1','numpy','minio', 'tensorflow', 'psycopg2-binary', 'sqlalchemy','boto3','kubernetes','kserve','paramiko'])
+
 read_data_op = kfp.components.load_component_from_file('preprocess.yaml')
 train_op = kfp.components.load_component_from_file('train.yaml')
+eval_deploy_op = kfp.components.load_component_from_file('eval_deploy.yaml')
 
 
 
 def ml_pipeline():
-    preprocess = read_csv_op()
-    preprocess.execution_options.caching_strategy.max_cache_staleness = "P0D"
-    train = train_op().after(preprocess)
-    train.execution_options.caching_strategy.max_cache_staleness = "P0D"
+    check_condition = check_condition_op()
+    check_condition.execution_options.caching_strategy.max_cache_staleness = "P0D"
+    with dsl.Condition(check_condition.output == 'True'):
+        preprocess = read_csv_op()
+        preprocess.execution_options.caching_strategy.max_cache_staleness = "P0D"
+        train = train_op().after(preprocess)
+        train.execution_options.caching_strategy.max_cache_staleness = "P0D"
+        eval_deploy = eval_deploy_op().after(train)
+        eval_deploy.execution_options.caching_strategy.max_cache_staleness = "P0D"
         
 print("compiling pipeline")
 

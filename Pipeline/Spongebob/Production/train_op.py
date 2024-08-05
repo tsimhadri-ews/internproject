@@ -6,6 +6,39 @@ def train_op():
     import paramiko 
     import os 
     
+    def get_secret():
+        secret_name = "DBCreds"
+        region_name = "us-east-1"
+
+        # Create a Secrets Manager client
+        session = boto3.session.Session()
+        client = session.client(
+            service_name='secretsmanager',
+            region_name=region_name
+        )
+
+        try:
+            get_secret_value_response = client.get_secret_value(
+                SecretId=secret_name
+            )
+        except ClientError as e:
+            raise e
+
+        secret = get_secret_value_response['SecretString']
+
+        # Parse the secret string to get the credentials
+        secret_dict = json.loads(secret)
+        username = secret_dict['username']
+        password = secret_dict['password']
+        host = secret_dict['host']
+        port = secret_dict['port']
+        dbname = secret_dict['dbname']
+
+        return username, password, host, port, dbname
+
+    # Retrieve database credentials
+    (user, pswd, host, port, db) = get_secret()
+    
     secret_name = "key"
     region_name = "us-east-1"
 
@@ -45,7 +78,7 @@ def train_op():
                       aws_session_token=credentials['SessionToken'])
 
     # SSH connection details
-    hostname = 'ec2-54-167-24-42.compute-1.amazonaws.com' #change each session 
+    hostname = 'ec2-54-167-24-42.compute-1.amazonaws.com'
     port = 22
     username = 'ubuntu'
 
@@ -63,7 +96,7 @@ def train_op():
     remote_directory = '/home/ubuntu/objectdetection'
     yolo = 'yolo_code'
 
-    script_to_run = 'yolo_model.py'
+    script_to_run = 'yolo_model2.py'
 
     command = f'cd {remote_directory} && source {venv} && cd {yolo} && python {script_to_run}'
     stdin, stdout, stderr = ssh_client.exec_command(command)
@@ -90,3 +123,4 @@ def train_op():
 
     # Close the connection
     ssh_client.close()
+    
