@@ -1,0 +1,11 @@
+train: /home/ubuntu/objectdetection/yolo_code/combined/train 
+val: /home/ubuntu/objectdetection/yolo_code/combined/test
+ 
+
+# Number of classes
+nc: 2
+
+# Class names
+names:
+  0: Spongebob
+  1: Not SpongeBob
