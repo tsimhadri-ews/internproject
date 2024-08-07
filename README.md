@@ -19,7 +19,7 @@ To set up this project, follow these steps:
 3. **Create Kafka Brokers**:
    - Follow the documentation to [create three brokers](https://github.com/tsimhadri-ews/internproject/tree/main/Documentation/Kafka) on the Kafka cluster.
 4. **Create Kafka Topic**:
-   - Follow the documentation to [create a topic](https://github.com/tsimhadri-ews/internproject/tree/main/Documentation/Kafkal) for each desired use case with a replication factor of 3.
+   - Follow the documentation to [create a topic](https://github.com/tsimhadri-ews/internproject/tree/main/Documentation/Kafka) for each desired use case with a replication factor of 3.
 5. **Configure S3 Bucket Permissions**:
    - Follow the documentation to [configure s3 permissions](https://github.com/tsimhadri-ews/internproject/blob/main/Documentation/S3/S3%20-%20Set%20up%20permissions.pdf).
 6. **Create PostgreSQL Database**:
