@@ -11,7 +11,7 @@ This project aims to classify (binary) several cybersecurity-adjacent datasets. 
 To set up this project, follow these steps:
 
 1. **Setup EC2 Resources and Anaconda**:
-   - Follow the documentation to set up [Anaconda](https://everwatchsolutions-my.sharepoint.com/personal/kyle_simon_everwatchsolutions_com/_layouts/15/Doc.aspx?sourcedoc={d4b5b174-d832-4649-bd8b-4775bb688c20}&action=edit&wd=target%28AWS%20EC2%20Setup.one%7C4ff51a2b-f919-42fd-8445-e3297aa05de4%2FInstalling%20Anaconda%7C7f1a4c5e-a3ce-499d-a034-1f4737c0200b%2F%29&wdorigin=NavigationUrl) and [create an EC2 instance](https://github.com/tsimhadri-ews/internproject/tree/main/Documentation/EC2_and_Anaconda) and install a Ubuntu virtual machine on it.
+   - Follow the documentation to set up [Anaconda](https://github.com/tsimhadri-ews/internproject/tree/main/Documentation/EC2_and_Anaconda) and [create an EC2 instance](https://github.com/tsimhadri-ews/internproject/tree/main/Documentation/EC2_and_Anaconda) and install a Ubuntu virtual machine on it.
 2. **Install Kubeflow**:
    - Follow the [documentation](https://github.com/tsimhadri-ews/internproject/blob/main/Documentation/Kubeflow/Kubernetes%20and%20Kubeflow%20-%20Setup.pdf) to prepare your EC2 instance and install KubeFlow.
 3. **Install Kafka**:
@@ -19,13 +19,13 @@ To set up this project, follow these steps:
 3. **Create Kafka Brokers**:
    - Follow the documentation to [create three brokers](https://github.com/tsimhadri-ews/internproject/tree/main/Documentation/Kafka) on the Kafka cluster.
 4. **Create Kafka Topic**:
-   - Follow the documentation to [create a topic]https://github.com/tsimhadri-ews/internproject/tree/main/Documentation/Kafkal) for each desired use case with a replication factor of 3.
+   - Follow the documentation to [create a topic](https://github.com/tsimhadri-ews/internproject/tree/main/Documentation/Kafkal) for each desired use case with a replication factor of 3.
 5. **Configure S3 Bucket Permissions**:
-   - Follow the documentation to [configure s3 permissions](https://everwatchsolutions-my.sharepoint.com/personal/kyle_simon_everwatchsolutions_com/_layouts/15/Doc.aspx?sourcedoc={d4b5b174-d832-4649-bd8b-4775bb688c20}&action=edit&wd=target%28Databases.one%7C5ea6a88c-1db6-4e3b-8d85-6a0ce6be28e0%2FS3%20Buckets%20permissions%7Ca79bc9d2-fb3b-4081-a741-4c143ef8a2db%2F%29&wdorigin=NavigationUrl).
+   - Follow the documentation to [configure s3 permissions](https://github.com/tsimhadri-ews/internproject/blob/main/Documentation/S3/S3%20-%20Set%20up%20permissions.pdf).
 6. **Create PostgreSQL Database**:
    - Follow the [documentation](https://github.com/tsimhadri-ews/internproject/blob/main/Documentation/Database/Database%20-%20Setting%20up%20a%20Database.pdf) to create the database and install pgAdmin on the cluster.
 7. **Configure AWS Secrets**:
-   - Follow the [documentation](https://everwatchsolutions-my.sharepoint.com/personal/kyle_simon_everwatchsolutions_com/_layouts/15/Doc.aspx?sourcedoc={d4b5b174-d832-4649-bd8b-4775bb688c20}&action=edit&wd=target%28Databases.one%7C5ea6a88c-1db6-4e3b-8d85-6a0ce6be28e0%2FRead%20in%20Credentials%20securely%7Cc84ae31e-2c25-4ca6-b6df-442336f42020%2F%29&wdorigin=NavigationUrl) to allow credentials to be securely read in.
+   - Follow the [documentation](https://github.com/tsimhadri-ews/internproject/blob/main/Documentation/AWS/AWS%20Secrets%20-%20Read%20in%20Credentials%20Securely.pdf) to allow credentials to be securely read in.
 
 ## Usage
 To use this project, follow these steps:
