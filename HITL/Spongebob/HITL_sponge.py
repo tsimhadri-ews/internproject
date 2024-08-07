@@ -97,7 +97,7 @@ try:
     print("connected to database")
 
     # Fetch the UIDs and outcomes from the database
-    select_query = "SELECT uid, outcome FROM spongebob_outcomes WHERE confirmed = 2 limit 1"
+    select_query = "SELECT uid, outcome FROM spongebob_outcomes limit 1" #WHERE confirmed = 2
     cursor.execute(select_query)
     rows = cursor.fetchall()
     if test < len(rows):
